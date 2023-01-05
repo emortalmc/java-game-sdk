@@ -33,7 +33,7 @@ public final class GameManager {
         this.agonesSdk = kubernetesModule.getSdk();
     }
 
-    void addGame(@NotNull Game game) {
+    public void addGame(@NotNull Game game) {
         boolean added = this.games.add(game);
         if (added) this.updateShouldAllocate();
 
@@ -48,7 +48,6 @@ public final class GameManager {
             missingPlayers.removeAll(actualPlayers);
 
             if (expectedPlayers.size() - missingPlayers.size() < this.config.minPlayers()) game.cancel();
-
         }).delay(10, ChronoUnit.SECONDS).schedule();
 
         this.environment.eventNode().addListener(PlayerLoginEvent.class, event -> {

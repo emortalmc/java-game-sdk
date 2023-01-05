@@ -15,7 +15,7 @@ public abstract class Game {
     }
 
     public @NotNull GameCreationInfo getGameCreationInfo() {
-        return gameCreationInfo;
+        return this.gameCreationInfo;
     }
 
     public abstract @NotNull Set<UUID> getPlayers();
@@ -26,6 +26,7 @@ public abstract class Game {
      * Also Used by the Game SDK:
      * if a player doesn't connect in time.
      */
+    // todo send players to lobby on call
     public abstract void cancel();
 
     /**
