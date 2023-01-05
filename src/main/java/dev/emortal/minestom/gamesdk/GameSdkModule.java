@@ -12,7 +12,7 @@ public final class GameSdkModule extends Module {
     private static GameManager gameManager;
     private static ModuleEnvironment environment;
 
-    private GameSdkModule(ModuleEnvironment environment) {
+    public GameSdkModule(ModuleEnvironment environment) {
         super(environment);
         GameSdkModule.environment = environment;
     }
