@@ -7,19 +7,19 @@ import dev.emortal.minestom.gamesdk.game.AgonesListener;
 import dev.emortal.minestom.gamesdk.game.GameManager;
 import org.jetbrains.annotations.NotNull;
 
-public final class GameSdk extends Module {
+public final class GameSdkModule extends Module {
     private static GameSdkConfig config;
     private static GameManager gameManager;
     private static ModuleEnvironment environment;
 
-    private GameSdk(ModuleEnvironment environment) {
+    private GameSdkModule(ModuleEnvironment environment) {
         super(environment);
-        GameSdk.environment = environment;
+        GameSdkModule.environment = environment;
     }
 
     public static void init(@NotNull GameSdkConfig config) {
-        GameSdk.config = config;
-        GameSdk.gameManager = new GameManager(environment, config);
+        GameSdkModule.config = config;
+        GameSdkModule.gameManager = new GameManager(environment, config);
         new AgonesListener(environment, config, gameManager);
     }
 
