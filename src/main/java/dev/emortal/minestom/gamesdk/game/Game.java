@@ -3,7 +3,6 @@ package dev.emortal.minestom.gamesdk.game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
