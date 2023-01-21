@@ -34,4 +34,6 @@ public abstract class Game {
      * must still abide by the {@link #cancel()} method if called.
      */
     public abstract void fastStart();
+
+    public abstract void load();
 }

@@ -25,7 +25,7 @@ public final class AgonesListener {
 
     public AgonesListener(@NotNull ModuleEnvironment environment, GameSdkConfig config, @NotNull GameManager gameManager) {
         KubernetesModule module = environment.moduleManager().getModule(KubernetesModule.class);
-        if (module == null || module.getSdk() == null) {
+        if (module == null) {
             LOGGER.warn("AgonesListener is not running in a Kubernetes environment, disabling");
             return;
         }
@@ -51,6 +51,7 @@ public final class AgonesListener {
             GameCreationInfo gameCreationInfo = new GameCreationInfo(allocation.playerIds(), this.lastAllocated);
             Game game = this.config.gameCreator().apply(gameCreationInfo);
             this.gameManager.addGame(game);
+            game.load();
         }
 
         @Override
