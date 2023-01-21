@@ -7,6 +7,7 @@ import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.entity.Entity;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerLoginEvent;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public final class GameManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameManager.class);
@@ -46,21 +48,15 @@ public final class GameManager {
         boolean added = this.games.add(game);
         if (added) this.updateShouldAllocate();
 
-        LOGGER.info("A");
         EventNode<Event> tempNode = EventNode.all(UUID.randomUUID().toString());
-        LOGGER.info("B");
         this.environment.eventNode().addChild(tempNode);
-        LOGGER.info("C");
 
         AtomicInteger playerCount = new AtomicInteger();
-        LOGGER.info("D");
         int expectedPlayerCount = game.getGameCreationInfo().playerIds().size();
-        LOGGER.info("E");
 
         Task startTask = MinecraftServer.getSchedulerManager().buildTask(() -> {
-            LOGGER.info("F");
             Set<UUID> expectedPlayers = game.getGameCreationInfo().playerIds();
-            Set<UUID> actualPlayers = game.getPlayers();
+            Set<UUID> actualPlayers = game.getPlayers().stream().map(Entity::getUuid).collect(Collectors.toSet());
 
             Set<UUID> missingPlayers = new HashSet<>(expectedPlayers);
             missingPlayers.removeAll(actualPlayers);
@@ -69,13 +65,9 @@ public final class GameManager {
             else this.environment.eventNode().removeChild(tempNode);
         }).delay(10, ChronoUnit.SECONDS).schedule();
 
-        LOGGER.info("G");
         tempNode.addListener(PlayerLoginEvent.class, event -> {
-            LOGGER.info("H: [{}] ({})", event.getPlayer().getUuid(), game.getGameCreationInfo().playerIds());
             if (!game.getGameCreationInfo().playerIds().contains(event.getPlayer().getUuid())) return;
-            LOGGER.info("I");
             int newCount = playerCount.incrementAndGet();
-            LOGGER.info("J {}", newCount);
 
             if (newCount == expectedPlayerCount) {
                 LOGGER.info("Starting game early because all players have joined");
