@@ -3,7 +3,6 @@ package dev.emortal.minestom.gamesdk.game;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import dev.agones.sdk.AgonesSDKProto;
-import dev.emortal.minestom.core.module.Module;
 import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
@@ -25,7 +24,7 @@ public final class AgonesListener {
 
     public AgonesListener(@NotNull ModuleEnvironment environment, GameSdkConfig config, @NotNull GameManager gameManager) {
         KubernetesModule module = environment.moduleManager().getModule(KubernetesModule.class);
-        if (module == null) {
+        if (module == null || module.getSdk() == null) {
             LOGGER.warn("AgonesListener is not running in a Kubernetes environment, disabling");
             return;
         }
@@ -50,7 +49,7 @@ public final class AgonesListener {
             Allocation allocation = Allocation.from(value);
             GameCreationInfo gameCreationInfo = new GameCreationInfo(allocation.playerIds(), this.lastAllocated);
             Game game = this.config.gameCreator().apply(gameCreationInfo);
-            this.gameManager.addGame(game);
+            this.gameManager.registerGame(game);
             game.load();
         }
 
