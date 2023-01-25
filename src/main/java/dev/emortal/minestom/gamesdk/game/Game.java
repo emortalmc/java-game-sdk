@@ -30,6 +30,14 @@ public abstract class Game {
         return this.audience;
     }
 
+    public void onPlayerJoin(final @NotNull Player player) {
+        // Do nothing by default.
+    }
+
+    public void onPlayerQuit(final @NotNull Player player) {
+        // Do nothing by default.
+    }
+
     public abstract void load();
 
     /**

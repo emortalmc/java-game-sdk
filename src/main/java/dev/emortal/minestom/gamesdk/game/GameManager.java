@@ -49,10 +49,9 @@ public final class GameManager {
 
                 if (this.games.isEmpty()) {
                     Game game = this.config.gameCreator().apply(new GameCreationInfo(Sets.newHashSet(player.getUuid()), Instant.now()));
-                    GameWrapper wrapper = this.registerGame(game);
+                    this.registerGame(game);
                     game.load();
-
-                    wrapper.getPreGameNode().call(event);
+                    game.onPlayerJoin(player);
                 } else {
                     Game game = this.games.iterator().next();
                     game.getPlayers().add(player);

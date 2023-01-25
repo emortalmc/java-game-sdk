@@ -8,6 +8,7 @@ import net.minestom.server.entity.Entity;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import net.minestom.server.event.trait.PlayerEvent;
 import net.minestom.server.timer.Task;
@@ -38,6 +39,9 @@ class GameWrapper {
     private final @NotNull AtomicInteger playerCount = new AtomicInteger();
     private final @Nullable Task startTimeOutTask; // called if not all players have joined and determines whether to start the game or cancel it.
 
+    // Global items
+    private final @Nullable EventNode<Event> gameNode;
+
     public GameWrapper(@NotNull GameManager gameManager, @NotNull EventNode<Event> parentNode,
                        @NotNull GameSdkConfig config, @NotNull Game game) {
         this.gameManager = gameManager;
@@ -54,6 +58,7 @@ class GameWrapper {
             }
             return true;
         });
+        this.gameNode = EventNode.all(UUID.randomUUID().toString());
 
         this.preGameNode.addListener(PlayerLoginEvent.class, event -> {
             System.out.println("D");
@@ -65,6 +70,7 @@ class GameWrapper {
                 game.start();
             }
         });
+        this.gameNode.addListener(PlayerDisconnectEvent.class, event -> game.onPlayerQuit(event.getPlayer()));
 
         // If in test mode, we don't want a countdown
         if (!GameSdkModule.TEST_MODE) {
@@ -89,9 +95,5 @@ class GameWrapper {
     private void cleanUpPreGame() {
         if (this.startTimeOutTask != null) this.startTimeOutTask.cancel();
         if (this.preGameNode != null) this.parentEventNode.removeChild(this.preGameNode);
-    }
-
-    public @Nullable EventNode<Event> getPreGameNode() {
-        return this.preGameNode;
     }
 }
