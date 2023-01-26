@@ -1,6 +1,5 @@
 package dev.emortal.minestom.gamesdk.game;
 
-import com.google.common.collect.Sets;
 import dev.agones.sdk.AgonesSDKProto;
 import dev.agones.sdk.SDKGrpc;
 import dev.emortal.api.agonessdk.EmptyStreamObserver;
@@ -9,9 +8,14 @@ import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.GameSdkModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventFilter;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerLoginEvent;
+import net.minestom.server.event.trait.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,6 +38,8 @@ public final class GameManager {
     private final @NotNull ModuleEnvironment environment;
     private final @Nullable SDKGrpc.SDKStub agonesSdk;
 
+    private final @NotNull EventNode<Event> eventNode;
+
     public GameManager(@NotNull ModuleEnvironment environment, @NotNull GameSdkConfig config) {
         this.config = config;
         this.environment = environment;
@@ -41,31 +47,44 @@ public final class GameManager {
         KubernetesModule kubernetesModule = environment.moduleManager().getModule(KubernetesModule.class);
         this.agonesSdk = kubernetesModule.getSdk();
 
+        this.eventNode = EventNode.all("game-manager");
+        environment.eventNode().addChild(this.eventNode);
+
         if (GameSdkModule.TEST_MODE) {
-            environment.eventNode().addListener(PlayerLoginEvent.class, event -> {
-                System.out.println("A");
+            final GameCreationInfo creationInfo = new GameCreationInfo(new HashSet<>(), Instant.now());
+            this.createGame(creationInfo);
+
+            this.eventNode.addListener(PlayerLoginEvent.class, event -> {
                 Player player = event.getPlayer();
                 player.sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
 
-                if (this.games.isEmpty()) {
-                    Game game = this.config.gameCreator().apply(new GameCreationInfo(Sets.newHashSet(player.getUuid()), Instant.now()));
-                    this.registerGame(game);
-                    game.load();
-                    game.onPlayerJoin(player);
-                } else {
-                    Game game = this.games.iterator().next();
-                    game.getPlayers().add(player);
-                    game.getGameCreationInfo().playerIds().add(player.getUuid());
-                }
+                Game game = this.games.iterator().next();
+                game.getPlayers().add(player);
+                game.getGameCreationInfo().playerIds().add(player.getUuid());
             });
         }
+    }
+
+    public GameWrapper createGame(final @NotNull GameCreationInfo creationInfo) {
+        final EventNode<Event> gameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, event -> {
+            if (event instanceof PlayerEvent playerEvent) {
+                return creationInfo.playerIds().contains(playerEvent.getPlayer().getUuid());
+            }
+            return true;
+        });
+        this.eventNode.addChild(gameNode);
+
+        final Game game = this.config.gameCreator().apply(creationInfo, gameNode);
+        final GameWrapper wrapper = this.registerGame(game);
+        game.load();
+        return wrapper;
     }
 
     public GameWrapper registerGame(@NotNull Game game) {
         boolean added = this.games.add(game);
         if (added) this.updateShouldAllocate();
 
-        return new GameWrapper(this, this.environment.eventNode(), this.config, game);
+        return new GameWrapper(this, eventNode, this.config, game);
     }
 
     /**

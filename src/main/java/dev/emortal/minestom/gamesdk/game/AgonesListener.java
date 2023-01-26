@@ -6,7 +6,6 @@ import dev.agones.sdk.AgonesSDKProto;
 import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
-import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,23 +21,21 @@ import java.util.UUID;
 public final class AgonesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgonesListener.class);
 
-    public AgonesListener(@NotNull ModuleEnvironment environment, GameSdkConfig config, @NotNull GameManager gameManager) {
+    public AgonesListener(@NotNull ModuleEnvironment environment, @NotNull GameManager gameManager) {
         KubernetesModule module = environment.moduleManager().getModule(KubernetesModule.class);
         if (module == null || module.getSdk() == null) {
             LOGGER.warn("AgonesListener is not running in a Kubernetes environment, disabling");
             return;
         }
-        module.getSdk().watchGameServer(AgonesSDKProto.Empty.getDefaultInstance(), new AgonesGameServerWatcher(config, gameManager));
+        module.getSdk().watchGameServer(AgonesSDKProto.Empty.getDefaultInstance(), new AgonesGameServerWatcher(gameManager));
     }
 
     private static class AgonesGameServerWatcher implements StreamObserver<AgonesSDKProto.GameServer> {
-        private final @NotNull GameSdkConfig config;
         private final @NotNull GameManager gameManager;
 
         private Instant lastAllocated = Instant.now();
 
-        private AgonesGameServerWatcher(@NotNull GameSdkConfig config, @NotNull GameManager gameManager) {
-            this.config = config;
+        private AgonesGameServerWatcher(@NotNull GameManager gameManager) {
             this.gameManager = gameManager;
         }
 
@@ -48,9 +45,7 @@ public final class AgonesListener {
 
             Allocation allocation = Allocation.from(value);
             GameCreationInfo gameCreationInfo = new GameCreationInfo(allocation.playerIds(), this.lastAllocated);
-            Game game = this.config.gameCreator().apply(gameCreationInfo);
-            this.gameManager.registerGame(game);
-            game.load();
+            this.gameManager.createGame(gameCreationInfo);
         }
 
         @Override

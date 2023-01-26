@@ -1,18 +1,19 @@
 package dev.emortal.minestom.gamesdk.config;
 
 import dev.emortal.minestom.gamesdk.game.Game;
+import java.util.function.BiFunction;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Function;
-
 public record GameSdkConfig(int maxGames, int minPlayers,
-                            @NotNull Function<GameCreationInfo, ? extends Game> gameCreator) {
+                            @NotNull BiFunction<GameCreationInfo, EventNode<Event>, ? extends Game> gameCreator) {
 
     @SuppressWarnings("unused")
     public static final class Builder {
         private int maxGames = -1;
         private int minPlayers = -1;
-        private Function<GameCreationInfo, ? extends Game> gameSupplier = null;
+        private BiFunction<GameCreationInfo, EventNode<Event>, ? extends Game> gameSupplier = null;
 
         public @NotNull Builder maxGames(int maxGames) {
             this.maxGames = maxGames;
@@ -24,7 +25,7 @@ public record GameSdkConfig(int maxGames, int minPlayers,
             return this;
         }
 
-        public @NotNull Builder gameSupplier(Function<GameCreationInfo, ? extends Game> gameSupplier) {
+        public @NotNull Builder gameSupplier(BiFunction<GameCreationInfo, EventNode<Event>, ? extends Game> gameSupplier) {
             this.gameSupplier = gameSupplier;
             return this;
         }

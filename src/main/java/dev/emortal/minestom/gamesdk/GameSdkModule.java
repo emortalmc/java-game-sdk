@@ -19,7 +19,6 @@ public final class GameSdkModule extends Module {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameSdkModule.class);
     public static final boolean TEST_MODE;
 
-    private static GameSdkConfig config;
     private static GameManager gameManager;
     private static ModuleEnvironment environment;
 
@@ -35,11 +34,10 @@ public final class GameSdkModule extends Module {
     public static void init(@NotNull GameSdkConfig config) {
         LOGGER.info("Initializing Game SDK (test mode: {}, config: {})", TEST_MODE, config);
 
-        GameSdkModule.config = config;
         GameSdkModule.gameManager = new GameManager(environment, config);
-        new AgonesListener(environment, config, gameManager);
+        new AgonesListener(environment, gameManager);
 
-        MinecraftServer.getCommandManager().register(new GameSdkCommand(GameSdkModule.gameManager, config));
+        MinecraftServer.getCommandManager().register(new GameSdkCommand(GameSdkModule.gameManager));
     }
 
     public static GameManager getGameManager() {
