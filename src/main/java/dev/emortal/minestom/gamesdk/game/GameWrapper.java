@@ -3,6 +3,7 @@ package dev.emortal.minestom.gamesdk.game;
 import dev.emortal.minestom.gamesdk.GameSdkModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
+import java.util.function.Predicate;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Entity;
 import net.minestom.server.event.Event;
@@ -50,15 +51,14 @@ class GameWrapper {
         this.game = game;
         this.gameCreationInfo = game.getGameCreationInfo();
 
-        this.preGameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, event -> {
-            System.out.println("B");
+        final Predicate<Event> playerInGamePredicate = event -> {
             if (event instanceof PlayerEvent playerEvent) {
-                System.out.println("C");
-                if (!this.gameCreationInfo.playerIds().contains(playerEvent.getPlayer().getUuid())) return false;
+                return this.gameCreationInfo.playerIds().contains(playerEvent.getPlayer().getUuid());
             }
             return true;
-        });
-        this.gameNode = EventNode.all(UUID.randomUUID().toString());
+        };
+        this.preGameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, playerInGamePredicate);
+        this.gameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, playerInGamePredicate);
 
         this.preGameNode.addListener(PlayerLoginEvent.class, event -> {
             System.out.println("D");
