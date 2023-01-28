@@ -3,6 +3,7 @@ package dev.emortal.minestom.gamesdk.game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import net.kyori.adventure.audience.Audience;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -29,6 +30,16 @@ public abstract class Game {
     public @NotNull Audience getAudience() {
         return this.audience;
     }
+
+    /**
+     * Called when a player logs in.
+     *
+     * <p>This exists because having the games register their own login listener isn't
+     * fast enough for running in production.</p>
+     *
+     * @param event the login event
+     */
+    public abstract void onPlayerLogin(final @NotNull PlayerLoginEvent event);
 
     public abstract void load();
 

@@ -61,6 +61,14 @@ public final class GameManager {
                 Game game = this.games.iterator().next();
                 game.getPlayers().add(player);
                 game.getGameCreationInfo().playerIds().add(player.getUuid());
+
+                game.onPlayerLogin(event);
+            });
+        } else {
+            this.eventNode.addListener(PlayerLoginEvent.class, event -> {
+                for (final Game game : this.games) {
+                    game.onPlayerLogin(event);
+                }
             });
         }
     }
