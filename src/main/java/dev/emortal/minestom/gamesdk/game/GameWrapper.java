@@ -12,6 +12,8 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import net.minestom.server.event.trait.PlayerEvent;
 import net.minestom.server.timer.Task;
+import net.minestom.server.timer.TaskSchedule;
+import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -83,6 +85,13 @@ class GameWrapper {
         } else {
             this.startTimeOutTask = null;
         }
+    }
+
+    public void scheduleGameStart() {
+        MinecraftServer.getSchedulerManager()
+                .buildTask(game::start)
+                .delay(5, TimeUnit.SECOND)
+                .schedule();
     }
 
     private void cleanUpPreGame() {

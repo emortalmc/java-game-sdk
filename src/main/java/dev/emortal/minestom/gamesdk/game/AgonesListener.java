@@ -45,7 +45,8 @@ public final class AgonesListener {
 
             Allocation allocation = Allocation.from(value);
             GameCreationInfo gameCreationInfo = new GameCreationInfo(allocation.playerIds(), this.lastAllocated);
-            this.gameManager.createGame(gameCreationInfo);
+            final GameWrapper gameWrapper = this.gameManager.createGame(gameCreationInfo);
+            gameWrapper.scheduleGameStart();
         }
 
         @Override
