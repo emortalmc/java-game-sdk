@@ -3,6 +3,8 @@ package dev.emortal.minestom.gamesdk.game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import net.kyori.adventure.audience.Audience;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,15 +14,22 @@ import java.util.Set;
 
 public abstract class Game {
     private final @NotNull GameCreationInfo gameCreationInfo;
+    private final @NotNull EventNode<Event> gameEventNode;
+
     protected final @NotNull Set<@NotNull Player> players = Collections.synchronizedSet(new HashSet<>());
     protected final @NotNull Audience audience = Audience.audience(this.players);
 
-    protected Game(@NotNull GameCreationInfo creationInfo) {
+    protected Game(@NotNull GameCreationInfo creationInfo, @NotNull EventNode<Event> gameEventNode) {
         this.gameCreationInfo = creationInfo;
+        this.gameEventNode = gameEventNode;
     }
 
     public @NotNull GameCreationInfo getGameCreationInfo() {
         return this.gameCreationInfo;
+    }
+
+    public @NotNull EventNode<Event> getGameEventNode() {
+        return gameEventNode;
     }
 
     public @NotNull Set<@NotNull Player> getPlayers() {

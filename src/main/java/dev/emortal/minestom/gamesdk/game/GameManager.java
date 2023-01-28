@@ -109,6 +109,8 @@ public final class GameManager {
     public void removeGame(@NotNull Game game) {
         boolean removed = this.games.remove(game);
         if (removed) this.updateShouldAllocate();
+
+        this.eventNode.removeChild(game.getGameEventNode());
     }
 
     public Optional<Game> findGame(@NotNull Player player) {
