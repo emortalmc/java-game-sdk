@@ -66,6 +66,13 @@ public final class GameManager {
             });
         } else {
             this.eventNode.addListener(PlayerLoginEvent.class, event -> {
+                while (this.games.isEmpty()) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (final InterruptedException exception) {
+                        exception.printStackTrace();
+                    }
+                }
                 for (final Game game : this.games) {
                     game.onPlayerLogin(event);
                 }
