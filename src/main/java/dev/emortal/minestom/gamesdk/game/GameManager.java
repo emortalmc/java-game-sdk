@@ -90,9 +90,7 @@ public final class GameManager {
         this.eventNode.addChild(gameNode);
 
         final Game game = this.config.gameCreator().apply(creationInfo, gameNode);
-        final GameWrapper wrapper = this.registerGame(game);
-        game.load();
-        return wrapper;
+        return this.registerGame(game);
     }
 
     public GameWrapper registerGame(@NotNull Game game) {

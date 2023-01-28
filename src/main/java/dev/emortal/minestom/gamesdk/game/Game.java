@@ -41,8 +41,6 @@ public abstract class Game {
      */
     public abstract void onPlayerLogin(final @NotNull PlayerLoginEvent event);
 
-    public abstract void load();
-
     /**
      * Called by the {@link GameManager} when all expected players have connected
      * or when the wait time for players to join has expired and there are enough players.
@@ -56,6 +54,5 @@ public abstract class Game {
      * Also Used by the Game SDK:
      * - if a player doesn't connect in time.
      */
-    // todo send players to lobby on call
     public abstract void cancel();
 }
