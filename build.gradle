@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("dev.emortal.minestom:core:6c4aac9") // should be provided by any user
+    compileOnly("dev.emortal.minestom:core:c8fd4ba") // should be provided by any user
 }
 
 test {

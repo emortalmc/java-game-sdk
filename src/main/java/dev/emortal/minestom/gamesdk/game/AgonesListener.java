@@ -1,8 +1,8 @@
 package dev.emortal.minestom.gamesdk.game;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
+import com.google.protobuf.InvalidProtocolBufferException;
 import dev.agones.sdk.AgonesSDKProto;
+import dev.emortal.api.kurushimi.AllocationData;
 import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
@@ -13,10 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 public final class AgonesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgonesListener.class);
@@ -43,8 +39,19 @@ public final class AgonesListener {
         public void onNext(AgonesSDKProto.GameServer value) {
             if (!this.isNewAllocation(value)) return;
 
-            Allocation allocation = Allocation.from(value);
-            GameCreationInfo gameCreationInfo = new GameCreationInfo(allocation.playerIds(), this.lastAllocated);
+            String dataValue = value.getObjectMeta().getAnnotationsMap().get("emortal.dev/allocation-dev");
+            AllocationData allocationData;
+            try {
+                allocationData = AllocationData.parseFrom(dataValue.getBytes());
+            } catch (InvalidProtocolBufferException e) {
+                LOGGER.error("Failed to parse allocation data: ", e);
+                return;
+            }
+
+            // Cannot be null as isNewAllocation returns false if it is null
+            Instant allocationTime = this.parseAllocationTime(value);
+
+            GameCreationInfo gameCreationInfo = GameCreationInfo.fromAllocationData(allocationTime, allocationData);
             final GameWrapper gameWrapper = this.gameManager.createGame(gameCreationInfo);
             gameWrapper.scheduleGameStart();
         }
@@ -57,6 +64,13 @@ public final class AgonesListener {
         @Override
         public void onCompleted() {
             LOGGER.info("Agones game server watcher completed");
+        }
+
+        private @Nullable Instant parseAllocationTime(AgonesSDKProto.GameServer gameServer) {
+            String string = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
+            if (string == null) return null;
+
+            return Instant.parse(string);
         }
 
         /**
@@ -76,28 +90,6 @@ public final class AgonesListener {
             }
 
             return false;
-        }
-    }
-
-    private record Allocation(
-            @NotNull String matchId,
-            @Nullable String backfillId,
-            @NotNull Set<UUID> playerIds
-    ) {
-        private static final Gson GSON = new Gson();
-
-        public static Allocation from(@NotNull AgonesSDKProto.GameServer gameServer) {
-            Map<String, String> annotations = gameServer.getObjectMeta().getAnnotationsMap();
-            return new Allocation(
-                    annotations.get("openmatch.dev/match-id"),
-                    annotations.get("openmatch.dev/backfill-id"), // nullable
-                    parsePlayerIds(annotations.get("openmatch.dev/expected-players"))
-            );
-        }
-
-        private static Set<UUID> parsePlayerIds(@NotNull String playerIds) {
-            return GSON.fromJson(playerIds, new TypeToken<HashSet<UUID>>() {
-            }.getType());
         }
     }
 }

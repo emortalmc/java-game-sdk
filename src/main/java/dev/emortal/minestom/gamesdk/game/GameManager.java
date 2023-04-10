@@ -3,12 +3,12 @@ package dev.emortal.minestom.gamesdk.game;
 import dev.agones.sdk.AgonesSDKProto;
 import dev.agones.sdk.SDKGrpc;
 import dev.emortal.api.agonessdk.EmptyStreamObserver;
+import dev.emortal.api.agonessdk.IgnoredStreamObserver;
 import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.GameSdkModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
-import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class GameManager {
@@ -51,7 +52,13 @@ public final class GameManager {
         environment.eventNode().addChild(this.eventNode);
 
         if (GameSdkModule.TEST_MODE) {
-            final GameCreationInfo creationInfo = new GameCreationInfo(new HashSet<>(), Instant.now());
+            final GameCreationInfo creationInfo = new GameCreationInfo(
+                    Instant.now(),
+                    null,
+                    "unknown",
+                    new HashSet<>(),
+                    null
+            );
             this.createGame(creationInfo);
 
             this.eventNode.addListener(PlayerLoginEvent.class, event -> {
@@ -125,6 +132,8 @@ public final class GameManager {
         LOGGER.info("Updating should allocate from {} to {}", original, newValue);
 
         if (original != newValue) {
+            if (this.games.size() == 0) this.agonesSdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>());
+
             this.agonesSdk.setLabel(AgonesSDKProto.KeyValue.newBuilder()
                     .setKey("should-allocate")
                     .setValue(String.valueOf(!original)).build(), new EmptyStreamObserver<>());
