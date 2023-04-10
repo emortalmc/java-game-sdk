@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.Base64;
 
 public final class AgonesListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgonesListener.class);
@@ -39,10 +40,12 @@ public final class AgonesListener {
         public void onNext(AgonesSDKProto.GameServer value) {
             if (!this.isNewAllocation(value)) return;
 
-            String dataValue = value.getObjectMeta().getAnnotationsMap().get("emortal.dev/allocation-dev");
+            String encodedData = value.getObjectMeta().getAnnotationsMap().get("emortal.dev/allocation-data");
+            byte[] rawData = Base64.getDecoder().decode(encodedData);
+
             AllocationData allocationData;
             try {
-                allocationData = AllocationData.parseFrom(dataValue.getBytes());
+                allocationData = AllocationData.parseFrom(rawData);
             } catch (InvalidProtocolBufferException e) {
                 LOGGER.error("Failed to parse allocation data: ", e);
                 return;
