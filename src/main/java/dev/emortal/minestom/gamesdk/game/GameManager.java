@@ -120,20 +120,24 @@ public final class GameManager {
         this.eventNode.removeChild(game.getGameEventNode());
     }
 
-    public Optional<Game> findGame(@NotNull Player player) {
+    public @NotNull Optional<Game> findGame(@NotNull Player player) {
         return this.games.stream().filter(game -> game.getPlayers().contains(player)).findFirst();
     }
 
     private void updateShouldAllocate() {
         if (this.agonesSdk == null) return;
 
-        boolean original = this.shouldAllocate.getAndSet(this.games.size() < this.config.maxGames());
+        int gameCount = this.games.size();
+
+        boolean original = this.shouldAllocate.getAndSet(gameCount < this.config.maxGames());
         boolean newValue = this.shouldAllocate.get();
-        LOGGER.info("Updating should allocate from {} to {}", original, newValue);
+        LOGGER.info("Updating should allocate from {} to {} (game count: {})", original, newValue, gameCount);
+
+        if (gameCount == 0) {
+            this.agonesSdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>());
+        }
 
         if (original != newValue) {
-            if (this.games.size() == 0) this.agonesSdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>());
-
             this.agonesSdk.setLabel(AgonesSDKProto.KeyValue.newBuilder()
                     .setKey("should-allocate")
                     .setValue(String.valueOf(!original)).build(), new EmptyStreamObserver<>());
