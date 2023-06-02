@@ -80,7 +80,9 @@ public final class GameManager {
                     }
                 }
                 for (final Game game : this.games) {
+                    if (!game.getGameCreationInfo().playerIds().contains(event.getPlayer().getUuid())) continue;
                     game.onPlayerLogin(event);
+                    break;
                 }
             });
         }
