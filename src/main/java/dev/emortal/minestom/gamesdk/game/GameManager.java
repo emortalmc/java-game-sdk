@@ -2,7 +2,6 @@ package dev.emortal.minestom.gamesdk.game;
 
 import dev.agones.sdk.AgonesSDKProto;
 import dev.agones.sdk.SDKGrpc;
-import dev.emortal.api.agonessdk.EmptyStreamObserver;
 import dev.emortal.api.agonessdk.IgnoredStreamObserver;
 import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
@@ -140,7 +139,7 @@ public final class GameManager {
         if (original != newValue) {
             this.agonesSdk.setLabel(AgonesSDKProto.KeyValue.newBuilder()
                     .setKey("should-allocate")
-                    .setValue(String.valueOf(!original)).build(), new EmptyStreamObserver<>());
+                    .setValue(String.valueOf(!original)).build(), new IgnoredStreamObserver<>());
         }
     }
 }
