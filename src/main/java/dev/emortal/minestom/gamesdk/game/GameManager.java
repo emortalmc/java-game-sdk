@@ -3,12 +3,13 @@ package dev.emortal.minestom.gamesdk.game;
 import dev.agones.sdk.AgonesSDKProto;
 import dev.agones.sdk.SDKGrpc;
 import dev.emortal.api.agonessdk.IgnoredStreamObserver;
-import dev.emortal.minestom.core.module.ModuleEnvironment;
+import dev.emortal.api.modules.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.GameSdkModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import net.kyori.adventure.text.Component;
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
@@ -48,7 +49,7 @@ public final class GameManager {
         this.agonesSdk = kubernetesModule.getSdk();
 
         this.eventNode = EventNode.all("game-manager");
-        environment.eventNode().addChild(this.eventNode);
+        MinecraftServer.getGlobalEventHandler().addChild(this.eventNode);
 
         if (GameSdkModule.TEST_MODE) {
             final GameCreationInfo creationInfo = new GameCreationInfo(

@@ -3,7 +3,7 @@ package dev.emortal.minestom.gamesdk.game;
 import com.google.protobuf.InvalidProtocolBufferException;
 import dev.agones.sdk.AgonesSDKProto;
 import dev.emortal.api.kurushimi.AllocationData;
-import dev.emortal.minestom.core.module.ModuleEnvironment;
+import dev.emortal.api.modules.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import io.grpc.stub.StreamObserver;

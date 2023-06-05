@@ -1,9 +1,9 @@
 package dev.emortal.minestom.gamesdk;
 
+import dev.emortal.api.modules.Module;
+import dev.emortal.api.modules.ModuleData;
+import dev.emortal.api.modules.ModuleEnvironment;
 import dev.emortal.minestom.core.Environment;
-import dev.emortal.minestom.core.module.Module;
-import dev.emortal.minestom.core.module.ModuleData;
-import dev.emortal.minestom.core.module.ModuleEnvironment;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.gamesdk.command.GameSdkCommand;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
