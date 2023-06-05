@@ -1,31 +1,34 @@
 plugins {
-    id("java-library")
-    id("maven-publish")
-
     id("com.github.johnrengelman.shadow") version "7.1.2"
+
+    `java-library`
+    `maven-publish`
 }
 
-group 'dev.emortal.minestom'
-version '1.0-SNAPSHOT'
+group = "dev.emortal.minestom"
+version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven { url = "https://repo.emortal.dev/snapshots" }
-    maven { url = "https://repo.emortal.dev/releases" }
-    maven { url = "https://jitpack.io" }
-    maven { url = "https://packages.confluent.io/maven/" }
+
+    maven("https://repo.emortal.dev/snapshots")
+    maven("https://repo.emortal.dev/releases")
+    maven("https://jitpack.io")
+    maven("https://packages.confluent.io/maven/")
 }
 
 dependencies {
     compileOnly("dev.emortal.minestom:core:7c5e374") // should be provided by any user
 }
 
-test {
-    useJUnitPlatform()
-}
+tasks {
+    test {
+        useJUnitPlatform()
+    }
 
-shadowJar {
-    mergeServiceFiles()
+    shadowJar {
+        mergeServiceFiles()
+    }
 }
 
 publishing {
@@ -49,15 +52,15 @@ publishing {
     }
 
     publications {
-        maven(MavenPublication) {
+        create<MavenPublication>("maven") {
             groupId = "dev.emortal.minestom"
             artifactId = "game-sdk"
 
-            def commitHash = System.getenv("COMMIT_HASH_SHORT")
-            def releaseVersion = System.getenv("RELEASE_VERSION")
+            val commitHash = System.getenv("COMMIT_HASH_SHORT")
+            val releaseVersion = System.getenv("RELEASE_VERSION")
             version = commitHash ?: releaseVersion ?: "local"
 
-            from components.java
+            from(components["java"])
         }
     }
 }
