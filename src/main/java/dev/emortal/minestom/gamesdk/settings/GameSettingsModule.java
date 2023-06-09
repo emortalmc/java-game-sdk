@@ -10,12 +10,14 @@ import dev.emortal.api.grpc.gameplayerdata.GamePlayerDataProto.GetGamePlayerData
 import dev.emortal.api.grpc.gameplayerdata.GamePlayerDataServiceGrpc;
 import dev.emortal.api.model.gamedata.GameDataGameMode;
 import dev.emortal.api.modules.Module;
+import dev.emortal.api.modules.ModuleData;
 import dev.emortal.api.modules.ModuleEnvironment;
 import dev.emortal.api.utils.GrpcStubCollection;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
+@ModuleData(name = "game-settings", required = false)
 public final class GameSettingsModule extends Module {
 
     private final GamePlayerDataServiceGrpc.GamePlayerDataServiceFutureStub playerDataService = GrpcStubCollection.getGamePlayerDataService().orElse(null);
