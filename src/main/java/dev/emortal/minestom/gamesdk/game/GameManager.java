@@ -103,10 +103,10 @@ public final class GameManager {
     }
 
     public GameWrapper registerGame(@NotNull Game game) {
-        boolean added = this.games.add(game);
-        if (added) this.updateShouldAllocate();
+        boolean added = games.add(game);
+        if (added) updateShouldAllocate();
 
-        return new GameWrapper(this, eventNode, this.config, game);
+        return new GameWrapper(this, eventNode, config, game);
     }
 
     /**
@@ -116,10 +116,10 @@ public final class GameManager {
      * @param game The game that has ended
      */
     public void removeGame(@NotNull Game game) {
-        boolean removed = this.games.remove(game);
-        if (removed) this.updateShouldAllocate();
+        final boolean removed = games.remove(game);
+        if (removed) updateShouldAllocate();
 
-        this.eventNode.removeChild(game.getGameEventNode());
+        eventNode.removeChild(game.getGameEventNode());
     }
 
     public @NotNull Optional<Game> findGame(@NotNull Player player) {
@@ -127,22 +127,35 @@ public final class GameManager {
     }
 
     private void updateShouldAllocate() {
-        if (this.agonesSdk == null) return;
+        if (agonesSdk == null) return;
 
-        int gameCount = this.games.size();
+        final int gameCount = games.size();
+        final boolean shouldAllocate = gameCount < config.maxGames();
 
-        boolean original = this.shouldAllocate.getAndSet(gameCount < this.config.maxGames());
-        boolean newValue = this.shouldAllocate.get();
-        LOGGER.info("Updating should allocate from {} to {} (game count: {})", original, newValue, gameCount);
+        final boolean changed = this.shouldAllocate.getAndSet(shouldAllocate) != shouldAllocate;
+        // If the current value is the same as the new value, don't bother updating
+        if (!changed) return;
 
-        if (gameCount == 0) {
-            this.agonesSdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>());
+        LOGGER.info("Updating should allocate to {} (game count: {})", shouldAllocate, gameCount);
+        agonesSdk.setLabel(AgonesSDKProto.KeyValue.newBuilder()
+                .setKey("should-allocate")
+                .setValue(String.valueOf(shouldAllocate)).build(), new IgnoredStreamObserver<>());
+
+        updateReadyIfEmpty();
+    }
+
+    private void updateReadyIfEmpty() {
+        if (agonesSdk == null) return;
+
+        final int playerCount = MinecraftServer.getConnectionManager().getOnlinePlayers().size();
+        if (playerCount > 0) return;
+
+        if (games.size() > 0) {
+            // This is really weird. This would only happen if a game didn't unregister itself properly.
+            LOGGER.warn("No players online, but there are still games running.");
         }
 
-        if (original != newValue) {
-            this.agonesSdk.setLabel(AgonesSDKProto.KeyValue.newBuilder()
-                    .setKey("should-allocate")
-                    .setValue(String.valueOf(!original)).build(), new IgnoredStreamObserver<>());
-        }
+        LOGGER.info("Marking server as ready as no players are online.");
+        agonesSdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>());
     }
 }
