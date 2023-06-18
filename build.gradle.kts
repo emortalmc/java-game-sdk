@@ -18,10 +18,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("dev.emortal.minestom:core:7c5e374") { // should be provided by any user
-        exclude(group = "dev.emortal.api", module = "common-proto-sdk")
-    }
-    compileOnly("dev.emortal.api:common-proto-sdk:e7bee22")
+    compileOnly("dev.emortal.minestom:core:2acaef1") // should be provided by any user
 }
 
 tasks {
