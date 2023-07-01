@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("dev.emortal.minestom:core:2acaef1") // should be provided by any user
+    api("dev.emortal.minestom:core:a06ff21") // should be provided by any user
 }
 
 tasks {

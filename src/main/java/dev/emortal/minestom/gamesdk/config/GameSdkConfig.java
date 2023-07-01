@@ -1,41 +1,55 @@
 package dev.emortal.minestom.gamesdk.config;
 
-import dev.emortal.minestom.gamesdk.game.Game;
-import java.util.function.BiFunction;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
+import dev.emortal.minestom.gamesdk.game.GameCreator;
 import org.jetbrains.annotations.NotNull;
 
-public record GameSdkConfig(int maxGames, int minPlayers,
-                            @NotNull BiFunction<GameCreationInfo, EventNode<Event>, ? extends Game> gameCreator) {
+public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator gameCreator) {
 
-    @SuppressWarnings("unused")
-    public static final class Builder {
-        private int maxGames = -1;
-        private int minPlayers = -1;
-        private BiFunction<GameCreationInfo, EventNode<Event>, ? extends Game> gameSupplier = null;
+    public static @NotNull Builder builder() {
+        return new BuilderImpl();
+    }
 
-        public @NotNull Builder maxGames(int maxGames) {
-            this.maxGames = maxGames;
-            return this;
+    public interface Builder {
+
+        @NotNull Builder minPlayers(int minPlayers);
+
+        @NotNull GameCreatorStep maxGames(int maxGames);
+
+        interface GameCreatorStep {
+
+            @NotNull EndStep gameCreator(@NotNull GameCreator creator);
         }
+
+        interface EndStep {
+
+            @NotNull GameSdkConfig build();
+        }
+    }
+
+    private static final class BuilderImpl implements Builder, Builder.GameCreatorStep, Builder.EndStep {
+
+        private int maxGames;
+        private int minPlayers;
+        private GameCreator gameCreator;
 
         public @NotNull Builder minPlayers(int minPlayers) {
             this.minPlayers = minPlayers;
             return this;
         }
 
-        public @NotNull Builder gameSupplier(BiFunction<GameCreationInfo, EventNode<Event>, ? extends Game> gameSupplier) {
-            this.gameSupplier = gameSupplier;
+        public @NotNull GameCreatorStep maxGames(int maxGames) {
+            this.maxGames = maxGames;
+            return this;
+        }
+
+        @Override
+        public @NotNull EndStep gameCreator(@NotNull GameCreator creator) {
+            this.gameCreator = creator;
             return this;
         }
 
         public @NotNull GameSdkConfig build() {
-            if (this.maxGames == -1) throw new IllegalStateException("maxGames must be set");
-
-            if (this.gameSupplier == null) throw new IllegalStateException("gameCreator must be set");
-
-            return new GameSdkConfig(this.maxGames, this.minPlayers, this.gameSupplier);
+            return new GameSdkConfig(maxGames, minPlayers, gameCreator);
         }
     }
 }

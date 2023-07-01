@@ -1,33 +1,25 @@
 package dev.emortal.minestom.gamesdk.command;
 
+import dev.emortal.minestom.core.utils.command.ExtraConditions;
 import dev.emortal.minestom.gamesdk.game.Game;
-import dev.emortal.minestom.gamesdk.game.GameManager;
+import dev.emortal.minestom.gamesdk.internal.GameManager;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.Command;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.arguments.ArgumentLiteral;
-import net.minestom.server.command.builder.condition.CommandCondition;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
+public final class GameSdkCommand extends Command {
 
-public class GameSdkCommand extends Command {
-    private final @NotNull GameManager gameManager;
+    private final GameManager gameManager;
 
     public GameSdkCommand(@NotNull GameManager gameManager) {
         super("gamesdk");
         this.gameManager = gameManager;
 
-        this.setCondition(this.hasPermission(null));
-
-        ArgumentLiteral start = new ArgumentLiteral("start");
-        this.addConditionalSyntax(
-                (sender, commandString) -> this.hasPermission("start").canUse(sender, commandString),
-                this::executeStart,
-                start
-        );
+        // /gamesdk start
+        addConditionalSyntax(ExtraConditions.hasPermission("command.gamesdk.start"), this::executeStart, new ArgumentLiteral("start"));
     }
 
     private void executeStart(CommandSender sender, CommandContext context) {
@@ -36,21 +28,13 @@ public class GameSdkCommand extends Command {
             return;
         }
 
-        Optional<Game> optionalGame = this.gameManager.findGame(player);
-        if (optionalGame.isEmpty()) {
-            sender.sendMessage("You must be in a game to use this command");
+        final Game game = gameManager.findGame(player);
+        if (game == null) {
+            sender.sendMessage("You must be in a game to use this command!");
             return;
         }
 
-        Game game = optionalGame.get();
+        sender.sendMessage("Starting game...");
         game.start();
-    }
-
-    private CommandCondition hasPermission(@Nullable String subCommand) {
-        return (sender, commandString) -> {
-            if (!sender.hasPermission("command.gamesdk")) return false;
-            if (subCommand == null) return true;
-            return sender.hasPermission("command.gamesdk." + subCommand);
-        };
     }
 }

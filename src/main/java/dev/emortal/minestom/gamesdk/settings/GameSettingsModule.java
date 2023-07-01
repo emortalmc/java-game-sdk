@@ -40,7 +40,7 @@ public final class GameSettingsModule extends Module {
     }
 
     public <T extends Message> @NotNull T getSettingsNow(@NotNull GameSettingsType<T> type, @NotNull UUID playerId) {
-        final GetGamePlayerDataResponse response = Futures.getUnchecked(getPlayerData(playerId, type.mode()));
+        final var response = Futures.getUnchecked(getPlayerData(playerId, type.mode()));
         return unpack(response.getData(), type.type());
     }
 
@@ -53,7 +53,7 @@ public final class GameSettingsModule extends Module {
     }
 
     private @NotNull ListenableFuture<GetGamePlayerDataResponse> getPlayerData(@NotNull UUID playerId, @NotNull GameDataGameMode gameMode) {
-        final GamePlayerDataProto.GamePlayerDataRequest request = GamePlayerDataProto.GamePlayerDataRequest.newBuilder()
+        final var request = GamePlayerDataProto.GamePlayerDataRequest.newBuilder()
                 .setPlayerId(playerId.toString())
                 .setGameMode(gameMode)
                 .build();
