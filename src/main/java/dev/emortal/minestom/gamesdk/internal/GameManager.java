@@ -12,6 +12,7 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,21 +48,7 @@ public final class GameManager {
     }
 
     private void initTestMode() {
-        // When we are in test mode, we only create and use a single game, and the creation info won't be passed on from Agones, so we have
-        // to manually create it and populate it with bogus defaults.
-
-        final var creationInfo = new GameCreationInfo(null, "unknown", new HashSet<>(), Instant.now());
-        final Game game = createGame(creationInfo);
-
-        eventNode.addListener(PlayerLoginEvent.class, event -> {
-            final Player player = event.getPlayer();
-            player.sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
-
-            game.getCreationInfo().playerIds().add(player.getUuid());
-            game.onJoin(player);
-            game.getPlayers().add(player);
-            event.setSpawningInstance(game.getInstance());
-        });
+        new TestGameHandler(this, eventNode);
     }
 
     private void initProductionMode() {
@@ -102,7 +89,7 @@ public final class GameManager {
         if (added) updateGameCount();
     }
 
-    private void removeGame(@NotNull Game game) {
+    void removeGame(@NotNull Game game) {
         final boolean removed = games.remove(game);
         if (removed) updateGameCount();
     }
@@ -117,7 +104,7 @@ public final class GameManager {
         KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> cleanUpGame(game), () -> cleanUpGame(game));
     }
 
-    private void cleanUpGame(@NotNull Game game) {
+    void cleanUpGame(@NotNull Game game) {
         for (final Player player : game.getPlayers()) {
             player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
         }
