@@ -1,6 +1,6 @@
 package dev.emortal.minestom.gamesdk.internal;
 
-import dev.emortal.minestom.gamesdk.GameSdkModule;
+import dev.emortal.minestom.gamesdk.MinestomGameServer;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.util.GameEventPredicates;
@@ -52,7 +52,7 @@ final class PreGameInitializer {
         });
 
         // If in test mode, we don't want a countdown
-        if (!GameSdkModule.TEST_MODE) {
+        if (!MinestomGameServer.TEST_MODE) {
             startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(10, ChronoUnit.SECONDS).schedule();
         } else {
             startTimeOutTask = null;

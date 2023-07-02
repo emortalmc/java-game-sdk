@@ -10,6 +10,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 
     maven("https://repo.emortal.dev/snapshots")
     maven("https://repo.emortal.dev/releases")
@@ -18,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:a06ff21") // should be provided by any user
+    api("dev.emortal.minestom:core:local") // should be provided by any user
 }
 
 tasks {

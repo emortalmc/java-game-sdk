@@ -1,7 +1,7 @@
 package dev.emortal.minestom.gamesdk.internal;
 
 import dev.emortal.api.kurushimi.KurushimiMinestomUtils;
-import dev.emortal.minestom.gamesdk.GameSdkModule;
+import dev.emortal.minestom.gamesdk.MinestomGameServer;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
@@ -12,12 +12,10 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
-import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +36,7 @@ public final class GameManager {
         MinecraftServer.getGlobalEventHandler().addChild(eventNode);
         MinecraftServer.getGlobalEventHandler().addChild(gamesEventNode);
 
-        if (GameSdkModule.TEST_MODE) {
+        if (MinestomGameServer.TEST_MODE) {
             initTestMode();
         } else {
             initProductionMode();
