@@ -6,6 +6,7 @@ import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameFinishedEvent;
+import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.MinecraftServer;
@@ -23,6 +24,8 @@ import java.util.Set;
 public final class GameManager {
 
     private final GameSdkConfig config;
+    private final GameUpdateListener updateListener;
+
     // The event node used by the game manager to listen for events.
     private final EventNode<Event> eventNode = EventNode.all("game-manager");
     // The event node that is the parent of all the game event nodes, for an easy tree view when looking for game nodes.
@@ -30,8 +33,9 @@ public final class GameManager {
 
     private final Set<Game> games = Collections.synchronizedSet(new HashSet<>());
 
-    public GameManager(@NotNull GameSdkConfig config) {
+    public GameManager(@NotNull GameSdkConfig config, @NotNull GameUpdateListener updateListener) {
         this.config = config;
+        this.updateListener = updateListener;
 
         MinecraftServer.getGlobalEventHandler().addChild(eventNode);
         MinecraftServer.getGlobalEventHandler().addChild(gamesEventNode);
@@ -84,16 +88,12 @@ public final class GameManager {
 
     private void registerGame(@NotNull Game game) {
         final boolean added = games.add(game);
-        if (added) updateGameCount();
+        if (added) updateListener.onGameAdded(game);
     }
 
     void removeGame(@NotNull Game game) {
         final boolean removed = games.remove(game);
-        if (removed) updateGameCount();
-    }
-
-    private void updateGameCount() {
-        MinecraftServer.getGlobalEventHandler().call(new GameCountUpdatedEvent(games.size()));
+        if (removed) updateListener.onGameRemoved(game);
     }
 
     private void onGameFinish(@NotNull GameFinishedEvent event) {

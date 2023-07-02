@@ -8,6 +8,8 @@ import dev.emortal.minestom.gamesdk.command.GameSdkCommand;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.internal.AgonesGameHandler;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
+import dev.emortal.minestom.gamesdk.internal.listener.AgonesGameUpdateListener;
+import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
 import java.util.function.Supplier;
 import net.minestom.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +27,17 @@ public final class MinestomGameServer {
     }
 
     private static void initGameSdk(ModuleProvider moduleProvider, GameSdkConfig config) {
-        LOGGER.info("Initializing Game SDK (test mode: {}, config: {})", TEST_MODE, config);
-        var gameManager = new GameManager(config);
+        var kubernetesModule = moduleProvider.getModule(KubernetesModule.class);
+        boolean hasAgones = kubernetesModule != null && kubernetesModule.getSdk() != null;
 
-        AgonesGameHandler.initialize(gameManager, config, moduleProvider.getModule(KubernetesModule.class));
+        LOGGER.info("Initializing Game SDK (test mode: {}, config: {})", TEST_MODE, config);
+
+        var updateListener = TEST_MODE || !hasAgones ? GameUpdateListener.NO_OP : new AgonesGameUpdateListener(config, kubernetesModule.getSdk());
+        var gameManager = new GameManager(config, updateListener);
+
+        if (hasAgones) {
+            new AgonesGameHandler(gameManager, config, kubernetesModule.getSdk());
+        }
         MinecraftServer.getCommandManager().register(new GameSdkCommand(gameManager));
     }
 

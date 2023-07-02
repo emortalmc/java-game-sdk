@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:local") // should be provided by any user
+    api("dev.emortal.minestom:core:ec7fd44") // should be provided by any user
 }
 
 tasks {
