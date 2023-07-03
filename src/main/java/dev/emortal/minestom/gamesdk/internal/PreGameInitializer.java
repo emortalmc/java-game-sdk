@@ -39,39 +39,39 @@ final class PreGameInitializer {
         this.config = config;
         this.game = game;
 
-        preGameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, GameEventPredicates.inGame(game.getCreationInfo()));
-        PRE_GAME_PARENT.addChild(preGameNode);
+        this.preGameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, GameEventPredicates.inGame(game.getCreationInfo()));
+        PRE_GAME_PARENT.addChild(this.preGameNode);
 
-        preGameNode.addListener(PlayerLoginEvent.class, event -> {
-            final int newCount = playerCount.incrementAndGet();
+        this.preGameNode.addListener(PlayerLoginEvent.class, event -> {
+            int newCount = this.playerCount.incrementAndGet();
             if (newCount != game.getCreationInfo().playerIds().size()) return;
 
             LOGGER.info("Starting game early because all players have joined");
-            cleanUpPreGame();
+            this.cleanUpPreGame();
             game.start();
         });
 
         // If in test mode, we don't want a countdown
         if (!MinestomGameServer.TEST_MODE) {
-            startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(10, ChronoUnit.SECONDS).schedule();
+            this.startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(10, ChronoUnit.SECONDS).schedule();
         } else {
-            startTimeOutTask = null;
+            this.startTimeOutTask = null;
         }
     }
 
     private void timeOut() {
-        final Set<UUID> expectedPlayers = game.getCreationInfo().playerIds();
+        Set<UUID> expectedPlayers = this.game.getCreationInfo().playerIds();
 
-        final Set<UUID> actualPlayers = new HashSet<>();
-        for (final var player : game.getPlayers()) {
+        Set<UUID> actualPlayers = new HashSet<>();
+        for (var player : this.game.getPlayers()) {
             actualPlayers.add(player.getUuid());
         }
 
-        final Set<UUID> missingPlayers = new HashSet<>(expectedPlayers);
+        Set<UUID> missingPlayers = new HashSet<>(expectedPlayers);
         missingPlayers.removeAll(actualPlayers);
 
-        if (expectedPlayers.size() - missingPlayers.size() < config.minPlayers()) {
-            game.finish();
+        if (expectedPlayers.size() - missingPlayers.size() < this.config.minPlayers()) {
+            this.game.finish();
         } else {
             cleanUpPreGame();
         }
@@ -79,13 +79,13 @@ final class PreGameInitializer {
 
     public void scheduleGameStart() {
         MinecraftServer.getSchedulerManager()
-                .buildTask(game::start)
+                .buildTask(this.game::start)
                 .delay(5, TimeUnit.SECOND)
                 .schedule();
     }
 
     private void cleanUpPreGame() {
-        if (startTimeOutTask != null) startTimeOutTask.cancel();
-        if (preGameNode != null) PRE_GAME_PARENT.removeChild(preGameNode);
+        if (this.startTimeOutTask != null) this.startTimeOutTask.cancel();
+        if (this.preGameNode != null) PRE_GAME_PARENT.removeChild(this.preGameNode);
     }
 }

@@ -31,23 +31,26 @@ final class TestGameHandler {
         this.gameManager = gameManager;
 
         eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
-        eventNode.addListener(PlayerDisconnectEvent.class, $ -> onLeave());
+        eventNode.addListener(PlayerDisconnectEvent.class, $ -> this.onLeave());
     }
 
     private void onJoin(@NotNull PlayerLoginEvent event) {
-        final Player player = event.getPlayer();
+        Player player = event.getPlayer();
         player.sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
 
-        if (game == null) game = gameManager.createGame(creationInfo);
-        game.getCreationInfo().playerIds().add(player.getUuid());
-        game.onJoin(player);
-        game.getPlayers().add(player);
-        event.setSpawningInstance(game.getInstance());
+        if (this.game == null) {
+            this.game = this.gameManager.createGame(this.creationInfo);
+        }
+
+        this.game.getCreationInfo().playerIds().add(player.getUuid());
+        this.game.onJoin(player);
+        this.game.getPlayers().add(player);
+        event.setSpawningInstance(this.game.getInstance());
     }
 
     private void onLeave() {
-        gameManager.removeGame(game);
-        gameManager.cleanUpGame(game);
-        game = null;
+        this.gameManager.removeGame(this.game);
+        this.gameManager.cleanUpGame(this.game);
+        this.game = null;
     }
 }

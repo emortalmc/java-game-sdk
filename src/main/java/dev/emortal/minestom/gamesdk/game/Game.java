@@ -20,7 +20,7 @@ public abstract class Game {
     private final GameCreationInfo creationInfo;
 
     protected final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
-    protected final Audience audience = PacketGroupingAudience.of(players);
+    protected final Audience audience = PacketGroupingAudience.of(this.players);
 
     protected Game(@NotNull GameCreationInfo creationInfo) {
         this.creationInfo = creationInfo;
@@ -57,15 +57,15 @@ public abstract class Game {
     public abstract @NotNull EventNode<Event> getEventNode();
 
     public final @NotNull GameCreationInfo getCreationInfo() {
-        return creationInfo;
+        return this.creationInfo;
     }
 
     public final @NotNull Set<Player> getPlayers() {
-        return players;
+        return this.players;
     }
 
     public final @NotNull Audience getAudience() {
-        return audience;
+        return this.audience;
     }
 
     public final void finish() {

@@ -32,11 +32,13 @@ public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator g
         private int minPlayers;
         private GameCreator gameCreator;
 
+        @Override
         public @NotNull Builder minPlayers(int minPlayers) {
             this.minPlayers = minPlayers;
             return this;
         }
 
+        @Override
         public @NotNull GameCreatorStep maxGames(int maxGames) {
             this.maxGames = maxGames;
             return this;
@@ -48,8 +50,9 @@ public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator g
             return this;
         }
 
+        @Override
         public @NotNull GameSdkConfig build() {
-            return new GameSdkConfig(maxGames, minPlayers, gameCreator);
+            return new GameSdkConfig(this.maxGames, this.minPlayers, this.gameCreator);
         }
     }
 }

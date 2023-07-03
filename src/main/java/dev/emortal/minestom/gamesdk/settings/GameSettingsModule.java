@@ -36,27 +36,27 @@ public final class GameSettingsModule extends Module {
     }
 
     public <T extends Message> @NotNull Future<T> getSettings(@NotNull GameSettingsType<T> type, @NotNull UUID playerId) {
-        return Futures.lazyTransform(getPlayerData(playerId, type.mode()), response -> unpack(response.getData(), type.type()));
+        return Futures.lazyTransform(this.getPlayerData(playerId, type.mode()), response -> this.unpack(response.getData(), type.type()));
     }
 
     public <T extends Message> @NotNull T getSettingsNow(@NotNull GameSettingsType<T> type, @NotNull UUID playerId) {
-        final var response = Futures.getUnchecked(getPlayerData(playerId, type.mode()));
-        return unpack(response.getData(), type.type());
+        var response = Futures.getUnchecked(this.getPlayerData(playerId, type.mode()));
+        return this.unpack(response.getData(), type.type());
     }
 
     private <T extends Message> @NotNull T unpack(@NotNull Any data, @NotNull Class<T> type) {
         try {
             return data.unpack(type);
-        } catch (final InvalidProtocolBufferException exception) {
+        } catch (InvalidProtocolBufferException exception) {
             throw new RuntimeException(exception);
         }
     }
 
     private @NotNull ListenableFuture<GetGamePlayerDataResponse> getPlayerData(@NotNull UUID playerId, @NotNull GameDataGameMode gameMode) {
-        final var request = GamePlayerDataProto.GamePlayerDataRequest.newBuilder()
+        var request = GamePlayerDataProto.GamePlayerDataRequest.newBuilder()
                 .setPlayerId(playerId.toString())
                 .setGameMode(gameMode)
                 .build();
-        return playerDataService.getGamePlayerData(request);
+        return this.playerDataService.getGamePlayerData(request);
     }
 }

@@ -37,35 +37,35 @@ public final class GameManager {
         this.config = config;
         this.updateListener = updateListener;
 
-        MinecraftServer.getGlobalEventHandler().addChild(eventNode);
-        MinecraftServer.getGlobalEventHandler().addChild(gamesEventNode);
+        MinecraftServer.getGlobalEventHandler().addChild(this.eventNode);
+        MinecraftServer.getGlobalEventHandler().addChild(this.gamesEventNode);
 
         if (MinestomGameServer.TEST_MODE) {
-            initTestMode();
+            this.initTestMode();
         } else {
-            initProductionMode();
+            this.initProductionMode();
         }
 
-        eventNode.addListener(GameFinishedEvent.class, this::onGameFinish);
+        this.eventNode.addListener(GameFinishedEvent.class, this::onGameFinish);
     }
 
     private void initTestMode() {
-        new TestGameHandler(this, eventNode);
+        new TestGameHandler(this, this.eventNode);
     }
 
     private void initProductionMode() {
-        eventNode.addListener(PlayerLoginEvent.class, event -> {
+        this.eventNode.addListener(PlayerLoginEvent.class, event -> {
             // Wait for games to be ready before allowing players to join
-            while (games.isEmpty()) {
+            while (this.games.isEmpty()) {
                 try {
                     Thread.sleep(1000);
-                } catch (final InterruptedException exception) {
+                } catch (InterruptedException exception) {
                     exception.printStackTrace();
                 }
             }
 
-            final Player player = event.getPlayer();
-            for (final Game game : games) {
+            Player player = event.getPlayer();
+            for (var game : this.games) {
                 if (!game.getCreationInfo().playerIds().contains(player.getUuid())) {
                     // The player is not for this game
                     continue;
@@ -80,37 +80,37 @@ public final class GameManager {
     }
 
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
-        final Game game = config.gameCreator().createGame(creationInfo);
-        gamesEventNode.addChild(game.getEventNode());
-        registerGame(game);
+        final Game game = this.config.gameCreator().createGame(creationInfo);
+        this.gamesEventNode.addChild(game.getEventNode());
+        this.registerGame(game);
         return game;
     }
 
     private void registerGame(@NotNull Game game) {
-        final boolean added = games.add(game);
-        if (added) updateListener.onGameAdded(game);
+        boolean added = this.games.add(game);
+        if (added) this.updateListener.onGameAdded(game);
     }
 
     void removeGame(@NotNull Game game) {
-        final boolean removed = games.remove(game);
-        if (removed) updateListener.onGameRemoved(game);
+        boolean removed = this.games.remove(game);
+        if (removed) this.updateListener.onGameRemoved(game);
     }
 
     private void onGameFinish(@NotNull GameFinishedEvent event) {
-        final Game game = event.game();
-        removeGame(game);
-        KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> cleanUpGame(game), () -> cleanUpGame(game));
+        Game game = event.game();
+        this.removeGame(game);
+        KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> this.cleanUpGame(game), () -> this.cleanUpGame(game));
     }
 
     void cleanUpGame(@NotNull Game game) {
-        for (final Player player : game.getPlayers()) {
+        for (var player : game.getPlayers()) {
             player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
         }
         game.cleanUp();
     }
 
     public @Nullable Game findGame(@NotNull Player player) {
-        for (final Game game : games) {
+        for (var game : this.games) {
             if (game.getPlayers().contains(player)) return game;
         }
         return null;

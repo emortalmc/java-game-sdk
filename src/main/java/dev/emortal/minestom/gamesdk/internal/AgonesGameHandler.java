@@ -38,35 +38,35 @@ public final class AgonesGameHandler implements StreamObserver<AgonesSDKProto.Ga
 
     @Override
     public void onNext(@NotNull AgonesSDKProto.GameServer value) {
-        if (!isNewAllocation(value)) return;
+        if (!this.isNewAllocation(value)) return;
 
-        final String encodedData = value.getObjectMeta().getAnnotationsMap().get("emortal.dev/allocation-data");
-        final byte[] rawData = Base64.getDecoder().decode(encodedData);
+        String encodedData = value.getObjectMeta().getAnnotationsMap().get("emortal.dev/allocation-data");
+        byte[] rawData = Base64.getDecoder().decode(encodedData);
 
         final AllocationData allocationData;
         try {
             allocationData = AllocationData.parseFrom(rawData);
-        } catch (final InvalidProtocolBufferException exception) {
+        } catch (InvalidProtocolBufferException exception) {
             LOGGER.error("Failed to parse allocation data: ", exception);
             return;
         }
 
         // Cannot be null as isNewAllocation returns false if it is null
-        final Instant allocationTime = parseAllocationTime(value);
+        Instant allocationTime = parseAllocationTime(value);
 
-        final GameCreationInfo creationInfo = createInfo(allocationTime, allocationData);
-        final Game game = gameManager.createGame(creationInfo);
+        GameCreationInfo creationInfo = createInfo(allocationTime, allocationData);
+        Game game = this.gameManager.createGame(creationInfo);
 
-        final PreGameInitializer initializer = new PreGameInitializer(config, game);
+        var initializer = new PreGameInitializer(this.config, game);
         initializer.scheduleGameStart();
     }
 
     private GameCreationInfo createInfo(Instant allocationTime, AllocationData data) {
-        final Match match = data.getMatch();
+        Match match = data.getMatch();
 
-        final Set<UUID> playerIds = new HashSet<>();
-        for (final Ticket ticket : match.getTicketsList()) {
-            for (final String playerId : ticket.getPlayerIdsList()) {
+        Set<UUID> playerIds = new HashSet<>();
+        for (Ticket ticket : match.getTicketsList()) {
+            for (String playerId : ticket.getPlayerIdsList()) {
                 playerIds.add(UUID.fromString(playerId));
             }
         }
@@ -85,7 +85,7 @@ public final class AgonesGameHandler implements StreamObserver<AgonesSDKProto.Ga
     }
 
     private @Nullable Instant parseAllocationTime(AgonesSDKProto.GameServer gameServer) {
-        final String lastAllocated = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
+        String lastAllocated = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
         if (lastAllocated == null) return null;
 
         return Instant.parse(lastAllocated);
@@ -98,10 +98,10 @@ public final class AgonesGameHandler implements StreamObserver<AgonesSDKProto.Ga
      * @return true if the allocation is new, false otherwise
      */
     private boolean isNewAllocation(AgonesSDKProto.GameServer gameServer) {
-        final String lastAllocated = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
+        String lastAllocated = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
         if (lastAllocated == null) return false;
 
-        final Instant instant = Instant.parse(lastAllocated);
+        Instant instant = Instant.parse(lastAllocated);
         if (instant.isAfter(this.lastAllocated)) {
             this.lastAllocated = instant;
             return true;

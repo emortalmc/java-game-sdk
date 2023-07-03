@@ -19,7 +19,7 @@ public final class GameSdkCommand extends Command {
         this.gameManager = gameManager;
 
         // /gamesdk start
-        addConditionalSyntax(ExtraConditions.hasPermission("command.gamesdk.start"), this::executeStart, new ArgumentLiteral("start"));
+        this.addConditionalSyntax(ExtraConditions.hasPermission("command.gamesdk.start"), this::executeStart, new ArgumentLiteral("start"));
     }
 
     private void executeStart(CommandSender sender, CommandContext context) {
@@ -28,7 +28,7 @@ public final class GameSdkCommand extends Command {
             return;
         }
 
-        final Game game = gameManager.findGame(player);
+        Game game = this.gameManager.findGame(player);
         if (game == null) {
             sender.sendMessage("You must be in a game to use this command!");
             return;
