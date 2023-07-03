@@ -1,70 +1,44 @@
 package dev.emortal.minestom.gamesdk.internal;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import dev.agones.sdk.AgonesSDKProto;
-import dev.agones.sdk.SDKGrpc;
-import dev.emortal.api.kurushimi.AllocationData;
 import dev.emortal.api.kurushimi.Match;
 import dev.emortal.api.kurushimi.Ticket;
+import dev.emortal.api.kurushimi.messages.MatchCreatedMessage;
+import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
-import io.grpc.stub.StreamObserver;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.Base64;
 
-public final class AgonesGameHandler implements StreamObserver<AgonesSDKProto.GameServer> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AgonesGameHandler.class);
+public final class AgonesGameHandler {
 
     private final GameManager gameManager;
     private final GameSdkConfig config;
 
-    private Instant lastAllocated = Instant.now();
-
-    public AgonesGameHandler(@NotNull GameManager gameManager, @NotNull GameSdkConfig config, @NotNull SDKGrpc.SDKStub sdk) {
+    public AgonesGameHandler(@NotNull GameManager gameManager, @NotNull GameSdkConfig config, @NotNull MessagingModule messaging) {
         this.gameManager = gameManager;
         this.config = config;
 
-        sdk.watchGameServer(AgonesSDKProto.Empty.getDefaultInstance(), this);
+        messaging.addListener(MatchCreatedMessage.class, this::onMatchCreated);
     }
 
-    @Override
-    public void onNext(@NotNull AgonesSDKProto.GameServer value) {
-        if (!this.isNewAllocation(value)) return;
+    private void onMatchCreated(MatchCreatedMessage message) {
+        Instant allocationTime = Instant.now();
 
-        String encodedData = value.getObjectMeta().getAnnotationsMap().get("emortal.dev/allocation-data");
-        byte[] rawData = Base64.getDecoder().decode(encodedData);
-
-        final AllocationData allocationData;
-        try {
-            allocationData = AllocationData.parseFrom(rawData);
-        } catch (InvalidProtocolBufferException exception) {
-            LOGGER.error("Failed to parse allocation data: ", exception);
-            return;
-        }
-
-        // Cannot be null as isNewAllocation returns false if it is null
-        Instant allocationTime = parseAllocationTime(value);
-
-        GameCreationInfo creationInfo = createInfo(allocationTime, allocationData);
+        GameCreationInfo creationInfo = createInfo(message.getMatch(), allocationTime);
         Game game = this.gameManager.createGame(creationInfo);
 
         var initializer = new PreGameInitializer(this.config, game);
         initializer.scheduleGameStart();
     }
 
-    private GameCreationInfo createInfo(Instant allocationTime, AllocationData data) {
-        Match match = data.getMatch();
-
+    private GameCreationInfo createInfo(Match match, Instant allocationTime) {
         Set<UUID> playerIds = new HashSet<>();
+
         for (Ticket ticket : match.getTicketsList()) {
             for (String playerId : ticket.getPlayerIdsList()) {
                 playerIds.add(UUID.fromString(playerId));
@@ -72,41 +46,5 @@ public final class AgonesGameHandler implements StreamObserver<AgonesSDKProto.Ga
         }
 
         return new GameCreationInfo(match.hasMapId() ? match.getMapId() : null, match.getGameModeId(), playerIds, allocationTime);
-    }
-
-    @Override
-    public void onError(@NotNull Throwable throwable) {
-        LOGGER.error("Agones game server watcher error: ", throwable);
-    }
-
-    @Override
-    public void onCompleted() {
-        LOGGER.info("Agones game server watcher completed");
-    }
-
-    private @Nullable Instant parseAllocationTime(AgonesSDKProto.GameServer gameServer) {
-        String lastAllocated = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
-        if (lastAllocated == null) return null;
-
-        return Instant.parse(lastAllocated);
-    }
-
-    /**
-     * Checks if the allocation is new and if so, updates the last allocated time.
-     *
-     * @param gameServer {@link dev.agones.sdk.AgonesSDKProto.GameServer} to check
-     * @return true if the allocation is new, false otherwise
-     */
-    private boolean isNewAllocation(AgonesSDKProto.GameServer gameServer) {
-        String lastAllocated = gameServer.getObjectMeta().getAnnotationsMap().get("agones.dev/last-allocated");
-        if (lastAllocated == null) return false;
-
-        Instant instant = Instant.parse(lastAllocated);
-        if (instant.isAfter(this.lastAllocated)) {
-            this.lastAllocated = instant;
-            return true;
-        }
-
-        return false;
     }
 }
