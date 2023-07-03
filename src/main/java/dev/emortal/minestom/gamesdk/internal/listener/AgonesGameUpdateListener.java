@@ -28,13 +28,13 @@ public final class AgonesGameUpdateListener implements GameUpdateListener {
     @Override
     public void onGameAdded(@NotNull Game game) {
         this.gameCount++;
-        updateShouldAllocate();
+        this.updateShouldAllocate();
     }
 
     @Override
     public void onGameRemoved(@NotNull Game game) {
         this.gameCount--;
-        updateShouldAllocate();
+        this.updateShouldAllocate();
     }
 
     private void updateShouldAllocate() {

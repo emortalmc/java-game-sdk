@@ -29,7 +29,7 @@ public final class AgonesGameHandler {
     private void onMatchCreated(MatchCreatedMessage message) {
         Instant allocationTime = Instant.now();
 
-        GameCreationInfo creationInfo = createInfo(message.getMatch(), allocationTime);
+        GameCreationInfo creationInfo = this.createInfo(message.getMatch(), allocationTime);
         Game game = this.gameManager.createGame(creationInfo);
 
         var initializer = new PreGameInitializer(this.config, game);

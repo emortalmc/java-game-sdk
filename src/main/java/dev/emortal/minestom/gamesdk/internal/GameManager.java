@@ -80,7 +80,7 @@ public final class GameManager {
     }
 
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
-        final Game game = this.config.gameCreator().createGame(creationInfo);
+        Game game = this.config.gameCreator().createGame(creationInfo);
         this.gamesEventNode.addChild(game.getEventNode());
         this.registerGame(game);
         return game;
@@ -93,7 +93,10 @@ public final class GameManager {
 
     void removeGame(@NotNull Game game) {
         boolean removed = this.games.remove(game);
-        if (removed) this.updateListener.onGameRemoved(game);
+        if (!removed) return;
+
+        this.gamesEventNode.removeChild(game.getEventNode());
+        this.updateListener.onGameRemoved(game);
     }
 
     private void onGameFinish(@NotNull GameFinishedEvent event) {
