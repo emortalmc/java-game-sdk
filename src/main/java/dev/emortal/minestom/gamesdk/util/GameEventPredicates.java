@@ -2,6 +2,8 @@ package dev.emortal.minestom.gamesdk.util;
 
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 import net.minestom.server.event.Event;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.event.trait.PlayerEvent;
@@ -24,13 +26,13 @@ public final class GameEventPredicates {
      *
      * This is a very common condition for game servers' event nodes.
      */
-    public static @NotNull Predicate<Event> inGameAndInstance(@NotNull GameCreationInfo creationInfo, @NotNull Instance instance) {
+    public static @NotNull Predicate<Event> inGameAndInstance(@NotNull GameCreationInfo creationInfo, @NotNull Supplier<Instance> instance) {
         return event -> {
             if (event instanceof PlayerEvent playerEvent) {
                 return creationInfo.playerIds().contains(playerEvent.getPlayer().getUuid());
             }
             if (event instanceof InstanceEvent instanceEvent) {
-                return instanceEvent.getInstance() == instance;
+                return instanceEvent.getInstance() == instance.get();
             }
             return true;
         };

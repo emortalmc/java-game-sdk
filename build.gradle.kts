@@ -17,7 +17,25 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:ec7fd44")
+    api("dev.emortal.minestom:core:cbfaa35") {
+        exclude("dev.emortal.api", "common-proto-sdk")
+    }
+    api("dev.emortal.api:common-proto-sdk:15ae12a")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(20))
+    }
+}
+
+tasks {
+    compileJava {
+        options.compilerArgs.addAll(listOf(
+                "--release", "20",
+                "--enable-preview"
+        ))
+    }
 }
 
 publishing {

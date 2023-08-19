@@ -5,6 +5,7 @@ import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.util.GameEventPredicates;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
@@ -31,9 +32,10 @@ final class PreGameInitializer {
     private final Game game;
 
     // Pre-start items
-    private final @Nullable EventNode<Event> preGameNode;
-    private final AtomicInteger playerCount = new AtomicInteger();
+    private final EventNode<Event> preGameNode;
     private final @Nullable Task startTimeOutTask; // called if not all players have joined and determines whether to start the game or cancel it.
+
+    private final AtomicInteger playerCount = new AtomicInteger();
 
     public PreGameInitializer(@NotNull GameSdkConfig config, @NotNull Game game) {
         this.config = config;
@@ -63,7 +65,7 @@ final class PreGameInitializer {
         Set<UUID> expectedPlayers = this.game.getCreationInfo().playerIds();
 
         Set<UUID> actualPlayers = new HashSet<>();
-        for (var player : this.game.getPlayers()) {
+        for (Player player : this.game.getPlayers()) {
             actualPlayers.add(player.getUuid());
         }
 
@@ -73,7 +75,7 @@ final class PreGameInitializer {
         if (expectedPlayers.size() - missingPlayers.size() < this.config.minPlayers()) {
             this.game.finish();
         } else {
-            cleanUpPreGame();
+            this.cleanUpPreGame();
         }
     }
 

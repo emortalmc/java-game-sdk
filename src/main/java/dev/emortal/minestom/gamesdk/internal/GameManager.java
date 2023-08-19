@@ -1,6 +1,6 @@
 package dev.emortal.minestom.gamesdk.internal;
 
-import dev.emortal.api.kurushimi.KurushimiMinestomUtils;
+import dev.emortal.minestom.core.utils.matchmaker.KurushimiMinestomUtils;
 import dev.emortal.minestom.gamesdk.MinestomGameServer;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
@@ -13,7 +13,6 @@ import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
-import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,41 +53,21 @@ public final class GameManager {
     }
 
     private void initProductionMode() {
-        this.eventNode.addListener(PlayerLoginEvent.class, event -> {
-            // Wait for games to be ready before allowing players to join
-            while (this.games.isEmpty()) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException exception) {
-                    exception.printStackTrace();
-                }
-            }
-
-            Player player = event.getPlayer();
-            for (var game : this.games) {
-                if (!game.getCreationInfo().playerIds().contains(player.getUuid())) {
-                    // The player is not for this game
-                    continue;
-                }
-
-                game.onJoin(player);
-                game.getPlayers().add(player);
-                event.setSpawningInstance(game.getInstance());
-                break;
-            }
-        });
+        new ProductionGameHandler(this, this.eventNode);
     }
 
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
         Game game = this.config.gameCreator().createGame(creationInfo);
-        this.gamesEventNode.addChild(game.getEventNode());
         this.registerGame(game);
         return game;
     }
 
     private void registerGame(@NotNull Game game) {
         boolean added = this.games.add(game);
-        if (added) this.updateListener.onGameAdded(game);
+        if (!added) return;
+
+        this.gamesEventNode.addChild(game.getEventNode());
+        this.updateListener.onGameAdded(game);
     }
 
     void removeGame(@NotNull Game game) {
@@ -106,16 +85,20 @@ public final class GameManager {
     }
 
     void cleanUpGame(@NotNull Game game) {
-        for (var player : game.getPlayers()) {
+        for (Player player : game.getPlayers()) {
             player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
         }
         game.cleanUp();
     }
 
     public @Nullable Game findGame(@NotNull Player player) {
-        for (var game : this.games) {
+        for (Game game : this.games) {
             if (game.getPlayers().contains(player)) return game;
         }
         return null;
+    }
+
+    @NotNull Set<Game> getGames() {
+        return this.games;
     }
 }

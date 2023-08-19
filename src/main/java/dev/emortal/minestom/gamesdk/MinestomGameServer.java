@@ -7,7 +7,7 @@ import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.command.GameSdkCommand;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
-import dev.emortal.minestom.gamesdk.internal.AgonesGameHandler;
+import dev.emortal.minestom.gamesdk.internal.AgonesGameListener;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
 import dev.emortal.minestom.gamesdk.internal.listener.AgonesGameUpdateListener;
 import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
@@ -22,28 +22,32 @@ public final class MinestomGameServer {
     public static final boolean TEST_MODE = !Environment.isProduction() && Boolean.parseBoolean(System.getenv("GAME_SDK_TEST_MODE"));
 
     public static void create(@NotNull Supplier<GameSdkConfig> configSupplier) {
-        var server = MinestomServer.builder().commonModules().build();
+        MinestomServer server = MinestomServer.builder().commonModules().build();
         initGameSdk(server.getModuleManager(), configSupplier.get());
         server.start();
     }
 
-    private static void initGameSdk(ModuleProvider moduleProvider, GameSdkConfig config) {
+    private static void initGameSdk(@NotNull ModuleProvider moduleProvider, @NotNull GameSdkConfig config) {
         LOGGER.info("Initializing Game SDK (test mode: {}, config: {})", TEST_MODE, config);
 
-        var messagingModule = moduleProvider.getModule(MessagingModule.class);
-        var kubernetesModule = moduleProvider.getModule(KubernetesModule.class);
+        MessagingModule messaging = moduleProvider.getModule(MessagingModule.class);
+        KubernetesModule kubernetesModule = moduleProvider.getModule(KubernetesModule.class);
         boolean hasAgones = kubernetesModule != null && kubernetesModule.getSdk() != null;
 
-        var updateListener = TEST_MODE || !hasAgones ? GameUpdateListener.NO_OP : new AgonesGameUpdateListener(config, kubernetesModule.getSdk());
-        var gameManager = new GameManager(config, updateListener);
+        GameUpdateListener updateListener;
+        if (TEST_MODE || !hasAgones) {
+            updateListener = GameUpdateListener.NO_OP;
+        } else {
+            updateListener = new AgonesGameUpdateListener(config, kubernetesModule.getSdk(), messaging.getKafkaProducer());
+        }
+        GameManager gameManager = new GameManager(config, updateListener);
 
-        if (messagingModule != null) {
-            new AgonesGameHandler(gameManager, config, messagingModule);
+        if (messaging != null) {
+            new AgonesGameListener(gameManager, config, messaging);
         }
         MinecraftServer.getCommandManager().register(new GameSdkCommand(gameManager));
     }
 
     private MinestomGameServer() {
-        throw new AssertionError("This class cannot be instantiated.");
     }
 }

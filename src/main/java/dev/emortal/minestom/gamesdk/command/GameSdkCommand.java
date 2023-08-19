@@ -1,6 +1,5 @@
 package dev.emortal.minestom.gamesdk.command;
 
-import dev.emortal.minestom.core.utils.command.ExtraConditions;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
 import net.minestom.server.command.CommandSender;
@@ -19,10 +18,10 @@ public final class GameSdkCommand extends Command {
         this.gameManager = gameManager;
 
         // /gamesdk start
-        this.addConditionalSyntax(ExtraConditions.hasPermission("command.gamesdk.start"), this::executeStart, new ArgumentLiteral("start"));
+        this.addConditionalSyntax((sender, $) -> sender.hasPermission("command.gamesdk.start"), this::executeStart, new ArgumentLiteral("start"));
     }
 
-    private void executeStart(CommandSender sender, CommandContext context) {
+    private void executeStart(@NotNull CommandSender sender, @NotNull CommandContext context) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("You must be a player to use this command");
             return;

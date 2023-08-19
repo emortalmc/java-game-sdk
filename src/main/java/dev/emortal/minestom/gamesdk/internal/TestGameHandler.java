@@ -1,5 +1,6 @@
 package dev.emortal.minestom.gamesdk.internal;
 
+import dev.emortal.api.model.matchmaker.Match;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.game.Game;
 import java.time.Instant;
@@ -24,7 +25,7 @@ final class TestGameHandler {
     private final GameManager gameManager;
 
     // We need some bogus creation info since we don't get it from Agones in test mode
-    private final GameCreationInfo creationInfo = new GameCreationInfo(null, "unknown", new HashSet<>(), Instant.now());
+    private final GameCreationInfo creationInfo = new GameCreationInfo(Match.getDefaultInstance(), new HashSet<>(), Instant.now());
     private Game game;
 
     TestGameHandler(@NotNull GameManager gameManager, @NotNull EventNode<Event> eventNode) {
@@ -45,7 +46,7 @@ final class TestGameHandler {
         this.game.getCreationInfo().playerIds().add(player.getUuid());
         this.game.onJoin(player);
         this.game.getPlayers().add(player);
-        event.setSpawningInstance(this.game.getInstance());
+        event.setSpawningInstance(this.game.getSpawningInstance());
     }
 
     private void onLeave() {

@@ -3,6 +3,13 @@ package dev.emortal.minestom.gamesdk.config;
 import dev.emortal.minestom.gamesdk.game.GameCreator;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * The configuration that the game manager will use to create and manage games.
+ *
+ * @param maxGames the maximum games that may run on the server at one time
+ * @param minPlayers the minimum players required for a game to start
+ * @param gameCreator a function that can be called to create a game instance
+ */
 public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator gameCreator) {
 
     public static @NotNull Builder builder() {
@@ -11,9 +18,12 @@ public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator g
 
     public interface Builder {
 
-        @NotNull Builder minPlayers(int minPlayers);
+        @NotNull MaxGamesStep minPlayers(int minPlayers);
 
-        @NotNull GameCreatorStep maxGames(int maxGames);
+        interface MaxGamesStep {
+
+            @NotNull GameCreatorStep maxGames(int maxGames);
+        }
 
         interface GameCreatorStep {
 
@@ -26,14 +36,14 @@ public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator g
         }
     }
 
-    private static final class BuilderImpl implements Builder, Builder.GameCreatorStep, Builder.EndStep {
+    private static final class BuilderImpl implements Builder, Builder.MaxGamesStep, Builder.GameCreatorStep, Builder.EndStep {
 
         private int maxGames;
         private int minPlayers;
         private GameCreator gameCreator;
 
         @Override
-        public @NotNull Builder minPlayers(int minPlayers) {
+        public @NotNull MaxGamesStep minPlayers(int minPlayers) {
             this.minPlayers = minPlayers;
             return this;
         }
