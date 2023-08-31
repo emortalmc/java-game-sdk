@@ -6,7 +6,7 @@ import com.google.protobuf.Message;
 import dev.emortal.api.grpc.gameplayerdata.GamePlayerDataProto;
 import dev.emortal.api.grpc.gameplayerdata.GamePlayerDataServiceGrpc;
 import dev.emortal.api.modules.Module;
-import dev.emortal.api.modules.ModuleData;
+import dev.emortal.api.modules.annotation.ModuleData;
 import dev.emortal.api.modules.env.ModuleEnvironment;
 import dev.emortal.api.utils.GrpcStubCollection;
 import java.util.UUID;
@@ -14,7 +14,7 @@ import java.util.UUID;
 import org.jetbrains.annotations.Blocking;
 import org.jetbrains.annotations.NotNull;
 
-@ModuleData(name = "game-settings", required = false)
+@ModuleData(name = "game-settings")
 public final class GameSettingsModule extends Module {
 
     private final GamePlayerDataServiceGrpc.GamePlayerDataServiceBlockingStub playerDataService = GrpcStubCollection.getGamePlayerDataService().orElse(null);

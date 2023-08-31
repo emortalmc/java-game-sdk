@@ -35,7 +35,7 @@ public final class MinestomGameServer {
         boolean hasAgones = kubernetesModule != null && kubernetesModule.getSdk() != null;
 
         GameUpdateListener updateListener;
-        if (TEST_MODE || !hasAgones) {
+        if (TEST_MODE || !hasAgones || messaging == null) {
             updateListener = GameUpdateListener.NO_OP;
         } else {
             updateListener = new AgonesGameUpdateListener(config, kubernetesModule.getSdk(), messaging.getKafkaProducer());

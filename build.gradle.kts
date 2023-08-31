@@ -17,10 +17,7 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:cbfaa35") {
-        exclude("dev.emortal.api", "common-proto-sdk")
-    }
-    api("dev.emortal.api:common-proto-sdk:15ae12a")
+    api("dev.emortal.minestom:core:bc43eb8")
 }
 
 java {

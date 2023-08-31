@@ -1,6 +1,6 @@
 package dev.emortal.minestom.gamesdk.internal;
 
-import dev.emortal.minestom.core.utils.matchmaker.KurushimiMinestomUtils;
+import dev.emortal.minestom.core.utils.KurushimiMinestomUtils;
 import dev.emortal.minestom.gamesdk.MinestomGameServer;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
