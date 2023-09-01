@@ -6,6 +6,7 @@ import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameFinishedEvent;
+import dev.emortal.minestom.gamesdk.game.GameProvider;
 import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -20,7 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class GameManager {
+public final class GameManager implements GameProvider {
 
     private final GameSdkConfig config;
     private final GameUpdateListener updateListener;
@@ -91,6 +92,7 @@ public final class GameManager {
         game.cleanUp();
     }
 
+    @Override
     public @Nullable Game findGame(@NotNull Player player) {
         for (Game game : this.games) {
             if (game.getPlayers().contains(player)) return game;

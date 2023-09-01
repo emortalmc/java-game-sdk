@@ -3,8 +3,6 @@ package dev.emortal.minestom.gamesdk.internal.listener;
 import dev.agones.sdk.AgonesSDKProto;
 import dev.agones.sdk.SDKGrpc;
 import dev.emortal.api.agonessdk.IgnoredStreamObserver;
-import dev.emortal.api.message.gamesdk.GameReadyMessage;
-import dev.emortal.api.utils.kafka.FriendlyKafkaProducer;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.Game;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,25 +15,21 @@ import org.slf4j.LoggerFactory;
 
 public final class AgonesGameUpdateListener implements GameUpdateListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgonesGameUpdateListener.class);
-    private static final String GAME_SDK_TOPIC = "game-sdk";
 
     private final GameSdkConfig config;
     private final SDKGrpc.SDKStub sdk;
-    private final FriendlyKafkaProducer kafkaProducer;
 
     private final AtomicInteger gameCount = new AtomicInteger(0);
     private final AtomicBoolean shouldAllocate = new AtomicBoolean(false);
 
-    public AgonesGameUpdateListener(@NotNull GameSdkConfig config, @NotNull SDKGrpc.SDKStub sdk, @NotNull FriendlyKafkaProducer kafkaProducer) {
+    public AgonesGameUpdateListener(@NotNull GameSdkConfig config, @NotNull SDKGrpc.SDKStub sdk) {
         this.config = config;
         this.sdk = sdk;
-        this.kafkaProducer = kafkaProducer;
     }
 
     @Override
     public void onGameAdded(@NotNull Game game) {
         this.updateShouldAllocate(this.gameCount.incrementAndGet());
-        this.kafkaProducer.produceAndForget(GAME_SDK_TOPIC, GameReadyMessage.newBuilder().setMatch(game.getCreationInfo().match()).build());
     }
 
     @Override

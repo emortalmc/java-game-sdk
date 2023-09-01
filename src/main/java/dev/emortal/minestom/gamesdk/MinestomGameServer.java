@@ -7,6 +7,7 @@ import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.command.GameSdkCommand;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
+import dev.emortal.minestom.gamesdk.game.GameProvider;
 import dev.emortal.minestom.gamesdk.internal.AgonesGameListener;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
 import dev.emortal.minestom.gamesdk.internal.listener.AgonesGameUpdateListener;
@@ -21,13 +22,14 @@ public final class MinestomGameServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinestomGameServer.class);
     public static final boolean TEST_MODE = !Environment.isProduction() && Boolean.parseBoolean(System.getenv("GAME_SDK_TEST_MODE"));
 
-    public static void create(@NotNull Supplier<GameSdkConfig> configSupplier) {
+    public static @NotNull MinestomGameServer create(@NotNull Supplier<GameSdkConfig> configSupplier) {
         MinestomServer server = MinestomServer.builder().commonModules().build();
-        initGameSdk(server.getModuleManager(), configSupplier.get());
+        MinestomGameServer gameServer = initGameSdk(server.getModuleManager(), configSupplier.get());
         server.start();
+        return gameServer;
     }
 
-    private static void initGameSdk(@NotNull ModuleProvider moduleProvider, @NotNull GameSdkConfig config) {
+    private static @NotNull MinestomGameServer initGameSdk(@NotNull ModuleProvider moduleProvider, @NotNull GameSdkConfig config) {
         LOGGER.info("Initializing Game SDK (test mode: {}, config: {})", TEST_MODE, config);
 
         MessagingModule messaging = moduleProvider.getModule(MessagingModule.class);
@@ -35,10 +37,10 @@ public final class MinestomGameServer {
         boolean hasAgones = kubernetesModule != null && kubernetesModule.getSdk() != null;
 
         GameUpdateListener updateListener;
-        if (TEST_MODE || !hasAgones || messaging == null) {
+        if (TEST_MODE || !hasAgones) {
             updateListener = GameUpdateListener.NO_OP;
         } else {
-            updateListener = new AgonesGameUpdateListener(config, kubernetesModule.getSdk(), messaging.getKafkaProducer());
+            updateListener = new AgonesGameUpdateListener(config, kubernetesModule.getSdk());
         }
         GameManager gameManager = new GameManager(config, updateListener);
 
@@ -46,8 +48,17 @@ public final class MinestomGameServer {
             new AgonesGameListener(gameManager, config, messaging);
         }
         MinecraftServer.getCommandManager().register(new GameSdkCommand(gameManager));
+
+        return new MinestomGameServer(gameManager);
     }
 
-    private MinestomGameServer() {
+    private final GameProvider gameProvider;
+
+    private MinestomGameServer(@NotNull GameProvider gameProvider) {
+        this.gameProvider = gameProvider;
+    }
+
+    public @NotNull GameProvider getGameProvider() {
+        return this.gameProvider;
     }
 }
