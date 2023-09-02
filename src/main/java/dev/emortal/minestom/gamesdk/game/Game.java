@@ -42,7 +42,7 @@ public abstract class Game implements PacketGroupingAudience {
 
     /**
      * Called when a player logs in.
-     *
+     * <p>
      * This exists because having the games register their own login listener isn't
      * fast enough for running in production.
      */
@@ -50,7 +50,7 @@ public abstract class Game implements PacketGroupingAudience {
 
     /**
      * Called when a player leaves the game.
-     *
+     * <p>
      * This allows the game to clean up after a player if they decide to leave mid game.
      */
     public abstract void onLeave(@NotNull Player player);

@@ -17,6 +17,8 @@ public final class GameSdkCommand extends Command {
         super("gamesdk");
         this.gameManager = gameManager;
 
+        this.setCondition((sender, commandString) -> sender.hasPermission("command.gamesdk"));
+
         // /gamesdk start
         this.addConditionalSyntax((sender, $) -> sender.hasPermission("command.gamesdk.start"), this::executeStart, new ArgumentLiteral("start"));
     }
