@@ -3,8 +3,6 @@ package dev.emortal.minestom.gamesdk.internal;
 import dev.emortal.api.model.matchmaker.Match;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.game.Game;
-import java.time.Instant;
-import java.util.HashSet;
 import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
@@ -12,6 +10,8 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashSet;
 
 /*
  * When we are in test mode, we only create and use a single game, and we recreate that game
@@ -25,7 +25,7 @@ final class TestGameHandler {
     private final GameManager gameManager;
 
     // We need some bogus creation info since we don't get it from Agones in test mode
-    private final GameCreationInfo creationInfo = new GameCreationInfo(Match.getDefaultInstance(), new HashSet<>(), Instant.now());
+    private final GameCreationInfo creationInfo = new GameCreationInfo(Match.getDefaultInstance(), new HashSet<>());
     private Game game;
 
     TestGameHandler(@NotNull GameManager gameManager, @NotNull EventNode<Event> eventNode) {

@@ -1,8 +1,9 @@
 package dev.emortal.minestom.gamesdk.internal;
 
 import dev.emortal.minestom.gamesdk.MinestomGameServer;
-import dev.emortal.minestom.gamesdk.game.Game;
+import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
+import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.util.GameEventPredicates;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
@@ -11,7 +12,6 @@ import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerLoginEvent;
 import net.minestom.server.timer.Task;
-import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -41,21 +41,23 @@ final class PreGameInitializer {
         this.config = config;
         this.game = game;
 
-        this.preGameNode = EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, GameEventPredicates.inGame(game.getCreationInfo()));
+        GameCreationInfo creationInfo = game.getCreationInfo();
+
+        this.preGameNode = EventNode.event(creationInfo.id(), EventFilter.ALL, GameEventPredicates.inGame(creationInfo));
         PRE_GAME_PARENT.addChild(this.preGameNode);
 
         this.preGameNode.addListener(PlayerLoginEvent.class, event -> {
             int newCount = this.playerCount.incrementAndGet();
-            if (newCount != game.getCreationInfo().playerIds().size()) return;
+            if (newCount != creationInfo.playerIds().size()) return;
 
-            LOGGER.info("Starting game early because all players have joined");
+            LOGGER.info("Starting game {} early because all players have joined", creationInfo.id());
             this.cleanUpPreGame();
             game.start();
         });
 
         // If in test mode, we don't want a countdown
         if (!MinestomGameServer.TEST_MODE) {
-            this.startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(10, ChronoUnit.SECONDS).schedule();
+            this.startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(5, ChronoUnit.SECONDS).schedule();
         } else {
             this.startTimeOutTask = null;
         }
@@ -76,14 +78,8 @@ final class PreGameInitializer {
             this.game.finish();
         } else {
             this.cleanUpPreGame();
+            this.game.start();
         }
-    }
-
-    public void scheduleGameStart() {
-        MinecraftServer.getSchedulerManager()
-                .buildTask(this.game::start)
-                .delay(5, TimeUnit.SECOND)
-                .schedule();
     }
 
     private void cleanUpPreGame() {
