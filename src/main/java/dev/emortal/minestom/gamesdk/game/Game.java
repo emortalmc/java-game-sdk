@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public abstract class Game implements PacketGroupingAudience {
 
@@ -63,8 +62,7 @@ public abstract class Game implements PacketGroupingAudience {
     }
 
     protected @NotNull EventNode<Event> createEventNode() {
-        Predicate<Event> predicate = GameEventPredicates.inGameAndInstance(this.creationInfo, this::getSpawningInstance);
-        return EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, predicate);
+        return EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, GameEventPredicates.inGame(this));
     }
 
     public final @NotNull GameCreationInfo getCreationInfo() {

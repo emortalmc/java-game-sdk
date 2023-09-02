@@ -43,7 +43,7 @@ final class PreGameInitializer {
 
         GameCreationInfo creationInfo = game.getCreationInfo();
 
-        this.preGameNode = EventNode.event(creationInfo.id(), EventFilter.ALL, GameEventPredicates.inGame(creationInfo));
+        this.preGameNode = EventNode.event(creationInfo.id(), EventFilter.ALL, GameEventPredicates.inCreationInfo(creationInfo));
         PRE_GAME_PARENT.addChild(this.preGameNode);
 
         this.preGameNode.addListener(PlayerLoginEvent.class, event -> {

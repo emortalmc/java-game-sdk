@@ -4,6 +4,7 @@ import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import dev.emortal.minestom.gamesdk.game.Game;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.trait.InstanceEvent;
 import net.minestom.server.event.trait.PlayerEvent;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class GameEventPredicates {
 
-    public static @NotNull Predicate<Event> inGame(@NotNull GameCreationInfo creationInfo) {
+    public static @NotNull Predicate<Event> inCreationInfo(@NotNull GameCreationInfo creationInfo) {
         return event -> {
             if (event instanceof PlayerEvent playerEvent) {
                 return creationInfo.playerIds().contains(playerEvent.getPlayer().getUuid());
@@ -26,13 +27,13 @@ public final class GameEventPredicates {
      *
      * This is a very common condition for game servers' event nodes.
      */
-    public static @NotNull Predicate<Event> inGameAndInstance(@NotNull GameCreationInfo creationInfo, @NotNull Supplier<Instance> instance) {
+    public static @NotNull Predicate<Event> inGame(@NotNull Game game) {
         return event -> {
             if (event instanceof PlayerEvent playerEvent) {
-                return creationInfo.playerIds().contains(playerEvent.getPlayer().getUuid());
+                return game.getPlayers().contains(playerEvent.getPlayer());
             }
             if (event instanceof InstanceEvent instanceEvent) {
-                return instanceEvent.getInstance() == instance.get();
+                return instanceEvent.getInstance() == game.getSpawningInstance();
             }
             return true;
         };
