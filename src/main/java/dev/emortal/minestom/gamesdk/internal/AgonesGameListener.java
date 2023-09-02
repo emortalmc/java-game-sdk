@@ -19,8 +19,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class AgonesGameListener {
-    private static final String GAME_SDK_TOPIC = "game-sdk";
-
     private final GameManager gameManager;
     private final GameSdkConfig config;
     private final FriendlyKafkaProducer kafkaProducer;
@@ -56,7 +54,7 @@ public final class AgonesGameListener {
     }
 
     private void notifyGameReady(@NotNull Match match) {
-        this.kafkaProducer.produceAndForget(GAME_SDK_TOPIC, GameReadyMessage.newBuilder().setMatch(match).build());
+        this.kafkaProducer.produceAndForget(GameReadyMessage.newBuilder().setMatch(match).build());
     }
 
     private void movePlayersOnThisServer(@NotNull Game game, @NotNull Set<UUID> playerIds) {
