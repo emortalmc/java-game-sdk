@@ -37,8 +37,7 @@ public final class AgonesGameListener {
         GameCreationInfo creationInfo = this.createInfo(match);
         Game game = this.gameManager.createGame(creationInfo);
 
-        PreGameInitializer initializer = new PreGameInitializer(this.config, game);
-        initializer.scheduleGameStart(); // TODO what... why?
+        new PreGameInitializer(this.config, game);
 
         this.movePlayersOnThisServer(game, creationInfo.playerIds());
         this.notifyGameReady(match);
