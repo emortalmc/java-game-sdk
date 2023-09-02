@@ -31,6 +31,8 @@ public interface MinestomGameServer {
 
         @NotNull Builder module(@NotNull Class<? extends Module> type, @NotNull LoadableModule.Creator creator);
 
+        @NotNull Builder commonModules();
+
         @NotNull Builder.EndStep configSupplier(@NotNull Supplier<GameSdkConfig> configSupplier);
 
         interface EndStep {

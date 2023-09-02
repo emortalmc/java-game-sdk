@@ -14,12 +14,12 @@ import dev.emortal.minestom.gamesdk.internal.AgonesGameListener;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
 import dev.emortal.minestom.gamesdk.internal.listener.AgonesGameUpdateListener;
 import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
-
-import java.util.function.Supplier;
 import net.minestom.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Supplier;
 
 final class MinestomGameServerImpl implements MinestomGameServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinestomGameServerImpl.class);
@@ -62,6 +62,12 @@ final class MinestomGameServerImpl implements MinestomGameServer {
         @Override
         public @NotNull Builder module(@NotNull Class<? extends Module> type, @NotNull LoadableModule.Creator creator) {
             this.serverBuilder.module(type, creator);
+            return this;
+        }
+
+        @Override
+        public @NotNull Builder commonModules() {
+            this.serverBuilder.commonModules();
             return this;
         }
 
