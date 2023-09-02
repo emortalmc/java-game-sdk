@@ -16,7 +16,7 @@ public interface MinestomGameServer {
     }
 
     static @NotNull MinestomGameServer create(@NotNull Supplier<GameSdkConfig> configSupplier) {
-        return builder().configSupplier(configSupplier).build();
+        return builder().commonModules().configSupplier(configSupplier).build();
     }
 
     @NotNull GameProvider getGameProvider();
