@@ -1,67 +1,80 @@
 package dev.emortal.minestom.gamesdk.game;
 
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
-import net.kyori.adventure.audience.Audience;
+import dev.emortal.minestom.gamesdk.internal.GameManager;
+import dev.emortal.minestom.gamesdk.util.GameEventPredicates;
+import net.minestom.server.MinecraftServer;
+import net.minestom.server.adventure.audience.PacketGroupingAudience;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
+import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
-import net.minestom.server.event.player.PlayerLoginEvent;
+import net.minestom.server.instance.Instance;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
-public abstract class Game {
-    private final @NotNull GameCreationInfo gameCreationInfo;
-    private final @NotNull EventNode<Event> gameEventNode;
+public abstract class Game implements PacketGroupingAudience {
 
-    protected final @NotNull Set<@NotNull Player> players = Collections.synchronizedSet(new HashSet<>());
-    protected final @NotNull Audience audience = Audience.audience(this.players);
+    private final GameCreationInfo creationInfo;
+    private final EventNode<Event> eventNode;
 
-    protected Game(@NotNull GameCreationInfo creationInfo, @NotNull EventNode<Event> gameEventNode) {
-        this.gameCreationInfo = creationInfo;
-        this.gameEventNode = gameEventNode;
+    protected final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
+
+    protected Game(@NotNull GameCreationInfo creationInfo) {
+        this.creationInfo = creationInfo;
+        this.eventNode = this.createEventNode();
     }
-
-    public @NotNull GameCreationInfo getGameCreationInfo() {
-        return this.gameCreationInfo;
-    }
-
-    public @NotNull EventNode<Event> getGameEventNode() {
-        return gameEventNode;
-    }
-
-    public @NotNull Set<@NotNull Player> getPlayers() {
-        return this.players;
-    }
-
-    public @NotNull Audience getAudience() {
-        return this.audience;
-    }
-
-    /**
-     * Called when a player logs in.
-     *
-     * <p>This exists because having the games register their own login listener isn't
-     * fast enough for running in production.</p>
-     *
-     * @param event the login event
-     */
-    public abstract void onPlayerLogin(final @NotNull PlayerLoginEvent event);
 
     /**
      * Called by the {@link GameManager} when all expected players have connected
      * or when the wait time for players to join has expired and there are enough players.
-     * Either this or {@link #cancel()} will be called.
      */
     public abstract void start();
 
     /**
-     * Tells the Game to cancel itself either before or during the game.
-     * This should only be called in an erroneous circumstance.
-     * Also Used by the Game SDK:
-     * - if a player doesn't connect in time.
+     * Called by the game manager to signal to the game that it should clean itself up when it's finished.
      */
-    public abstract void cancel();
+    public abstract void cleanUp();
+
+    /**
+     * Called when a player logs in.
+     * <p>
+     * This exists because having the games register their own login listener isn't
+     * fast enough for running in production.
+     */
+    public abstract void onJoin(@NotNull Player player);
+
+    /**
+     * Called when a player leaves the game.
+     * <p>
+     * This allows the game to clean up after a player if they decide to leave mid game.
+     */
+    public abstract void onLeave(@NotNull Player player);
+
+    public abstract @NotNull Instance getSpawningInstance();
+
+    public final @NotNull EventNode<Event> getEventNode() {
+        return this.eventNode;
+    }
+
+    protected @NotNull EventNode<Event> createEventNode() {
+        return EventNode.event(UUID.randomUUID().toString(), EventFilter.ALL, GameEventPredicates.inGame(this));
+    }
+
+    public final @NotNull GameCreationInfo getCreationInfo() {
+        return this.creationInfo;
+    }
+
+    @Override
+    public final @NotNull Set<Player> getPlayers() {
+        return this.players;
+    }
+
+    public final void finish() {
+        MinecraftServer.getGlobalEventHandler().call(new GameFinishedEvent(this));
+    }
 }

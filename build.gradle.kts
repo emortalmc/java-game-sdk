@@ -1,6 +1,4 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-
     `java-library`
     `maven-publish`
 }
@@ -13,21 +11,27 @@ repositories {
 
     maven("https://repo.emortal.dev/snapshots")
     maven("https://repo.emortal.dev/releases")
+
     maven("https://jitpack.io")
     maven("https://packages.confluent.io/maven/")
 }
 
 dependencies {
-    compileOnly("dev.emortal.minestom:core:2acaef1") // should be provided by any user
+    api("dev.emortal.minestom:core:cbec6a5")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(20))
+    }
 }
 
 tasks {
-    test {
-        useJUnitPlatform()
-    }
-
-    shadowJar {
-        mergeServiceFiles()
+    compileJava {
+        options.compilerArgs.addAll(listOf(
+                "--release", "20",
+                "--enable-preview"
+        ))
     }
 }
 
