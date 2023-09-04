@@ -16,12 +16,15 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public final class GameManager implements GameProvider {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GameManager.class);
 
     private final GameSdkConfig config;
     private final GameUpdateListener updateListener;
@@ -60,23 +63,26 @@ public final class GameManager implements GameProvider {
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
         Game game = this.config.gameCreator().createGame(creationInfo);
         this.registerGame(game);
+        this.updateListener.onGameAdded(game);
         return game;
     }
 
     private void registerGame(@NotNull Game game) {
         boolean added = this.games.add(game);
-        if (!added) return;
-
+        if (!added) {
+            LOGGER.warn("Attempted to add game {} that is already registered", game);
+            return;
+        }
         this.gamesEventNode.addChild(game.getEventNode());
-        this.updateListener.onGameAdded(game);
     }
 
     void removeGame(@NotNull Game game) {
         boolean removed = this.games.remove(game);
-        if (!removed) return;
-
+        if (!removed) {
+            LOGGER.warn("Attempted to remove game {} that is not registered", game);
+            return;
+        }
         this.gamesEventNode.removeChild(game.getEventNode());
-        this.updateListener.onGameRemoved(game);
     }
 
     private void onGameFinish(@NotNull GameFinishedEvent event) {
@@ -90,6 +96,10 @@ public final class GameManager implements GameProvider {
             player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
         }
         game.cleanUp();
+
+        // We call this here to ensure all the game's players are disconnected and the game is unregistered, so the check for the
+        // player count will actually see the new player count after the players are disconnected.
+        this.updateListener.onGameRemoved(game);
     }
 
     @Override
