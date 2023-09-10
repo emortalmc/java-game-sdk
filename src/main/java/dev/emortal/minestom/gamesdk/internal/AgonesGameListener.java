@@ -5,6 +5,7 @@ import dev.emortal.api.message.matchmaker.MatchCreatedMessage;
 import dev.emortal.api.model.matchmaker.Match;
 import dev.emortal.api.model.matchmaker.Ticket;
 import dev.emortal.api.utils.kafka.FriendlyKafkaProducer;
+import dev.emortal.minestom.core.Environment;
 import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
@@ -32,6 +33,8 @@ public final class AgonesGameListener {
     }
 
     private void onMatchCreated(@NotNull Match match) {
+        if (!this.isGameForThisServer(match)) return;
+
         GameCreationInfo creationInfo = this.createInfo(match);
         Game game = this.gameManager.createGame(creationInfo);
 
@@ -39,6 +42,10 @@ public final class AgonesGameListener {
 
         this.movePlayersOnThisServer(game, creationInfo.playerIds());
         this.notifyGameReady(match);
+    }
+
+    private boolean isGameForThisServer(@NotNull Match match) {
+        return match.getAssignment().getServerId().equals(Environment.getHostname());
     }
 
     private @NotNull GameCreationInfo createInfo(@NotNull Match match) {
