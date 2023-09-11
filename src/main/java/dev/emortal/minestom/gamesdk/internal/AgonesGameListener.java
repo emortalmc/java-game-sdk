@@ -10,6 +10,7 @@ import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.Game;
+import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
@@ -74,11 +75,12 @@ public final class AgonesGameListener {
             Game oldGame = this.gameManager.findGame(player);
             if (oldGame == null) continue;
 
-            oldGame.onLeave(player);
             oldGame.getPlayers().remove(player);
+            oldGame.onLeave(player);
 
-            game.onJoin(player);
             game.getPlayers().add(player);
+            game.onJoin(player);
+            player.setInstance(game.getSpawningInstance());
         }
     }
 }

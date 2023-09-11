@@ -37,8 +37,8 @@ final class ProductionGameHandler {
             return;
         }
 
-        game.onJoin(player);
         game.getPlayers().add(player);
+        game.onJoin(player);
         event.setSpawningInstance(game.getSpawningInstance());
     }
 
@@ -48,7 +48,7 @@ final class ProductionGameHandler {
         Game game = this.gameManager.findGame(player);
         if (game == null) return;
 
-        game.onLeave(player);
         game.getPlayers().remove(player);
+        game.onLeave(player);
     }
 }

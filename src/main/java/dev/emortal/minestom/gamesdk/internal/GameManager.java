@@ -92,14 +92,24 @@ public final class GameManager implements GameProvider {
     }
 
     void cleanUpGame(@NotNull Game game) {
-        for (Player player : game.getPlayers()) {
-            player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
-        }
+        this.kickAllRemainingPlayers(game);
         game.cleanUp();
 
         // We call this here to ensure all the game's players are disconnected and the game is unregistered, so the check for the
         // player count will actually see the new player count after the players are disconnected.
         this.updateListener.onGameRemoved(game);
+    }
+
+    private void kickAllRemainingPlayers(@NotNull Game game) {
+        for (Player player : game.getPlayers()) {
+            // Don't kick players that aren't online
+            if (!player.isOnline()) continue;
+
+            // The player may have been moved to a different game on the same server
+            if (player.getInstance() != game.getSpawningInstance()) continue;
+
+            player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
+        }
     }
 
     @Override
