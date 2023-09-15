@@ -10,7 +10,6 @@ import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.Game;
-import net.kyori.adventure.text.Component;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
@@ -21,9 +20,10 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class AgonesGameListener {
-    private final GameManager gameManager;
-    private final GameSdkConfig config;
-    private final FriendlyKafkaProducer kafkaProducer;
+
+    private final @NotNull GameManager gameManager;
+    private final @NotNull GameSdkConfig config;
+    private final @NotNull FriendlyKafkaProducer kafkaProducer;
 
     public AgonesGameListener(@NotNull GameManager gameManager, @NotNull GameSdkConfig config, @NotNull MessagingModule messaging) {
         this.gameManager = gameManager;
@@ -65,7 +65,7 @@ public final class AgonesGameListener {
         this.kafkaProducer.produceAndForget(GameReadyMessage.newBuilder().setMatch(match).build());
     }
 
-    private void movePlayersOnThisServer(@NotNull Game game, @NotNull Set<UUID> playerIds) {
+    private void movePlayersOnThisServer(@NotNull Game newGame, @NotNull Set<UUID> playerIds) {
         ConnectionManager connectionManager = MinecraftServer.getConnectionManager();
 
         for (UUID playerId : playerIds) {
@@ -75,12 +75,11 @@ public final class AgonesGameListener {
             Game oldGame = this.gameManager.findGame(player);
             if (oldGame == null) continue;
 
-            oldGame.getPlayers().remove(player);
-            oldGame.onLeave(player);
+            GamePlayerTracker.removePlayer(oldGame, player);
+            GamePlayerTracker.addPlayer(newGame, player);
 
-            game.getPlayers().add(player);
-            game.onJoin(player);
-            player.setInstance(game.getSpawningInstance());
+            player.setInstance(newGame.getSpawningInstance());
+            player.respawn();
         }
     }
 }

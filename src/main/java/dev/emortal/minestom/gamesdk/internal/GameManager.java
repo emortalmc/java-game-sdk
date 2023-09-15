@@ -26,8 +26,8 @@ import java.util.Set;
 public final class GameManager implements GameProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameManager.class);
 
-    private final GameSdkConfig config;
-    private final GameUpdateListener updateListener;
+    private final @NotNull GameSdkConfig config;
+    private final @NotNull GameUpdateListener updateListener;
 
     // The event node used by the game manager to listen for events.
     private final EventNode<Event> eventNode = EventNode.all("game-manager");
@@ -76,7 +76,7 @@ public final class GameManager implements GameProvider {
         this.gamesEventNode.addChild(game.getEventNode());
     }
 
-    void removeGame(@NotNull Game game) {
+    private void removeGame(@NotNull Game game) {
         boolean removed = this.games.remove(game);
         if (!removed) {
             LOGGER.warn("Attempted to remove game {} that is not registered", game);
@@ -87,11 +87,17 @@ public final class GameManager implements GameProvider {
 
     private void onGameFinish(@NotNull GameFinishedEvent event) {
         Game game = event.game();
+        if (!this.games.contains(game)) {
+            // Definitely don't want a double remove and clean up
+            LOGGER.info("Game already finished and removed when asked to be finished. Ignoring finish request.");
+            return;
+        }
+
         this.removeGame(game);
         KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> this.cleanUpGame(game), () -> this.cleanUpGame(game));
     }
 
-    void cleanUpGame(@NotNull Game game) {
+    private void cleanUpGame(@NotNull Game game) {
         this.kickAllRemainingPlayers(game);
         game.cleanUp();
 

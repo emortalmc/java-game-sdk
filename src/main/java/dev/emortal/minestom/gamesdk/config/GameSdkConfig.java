@@ -6,11 +6,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The configuration that the game manager will use to create and manage games.
  *
- * @param maxGames the maximum games that may run on the server at one time
  * @param minPlayers the minimum players required for a game to start
+ * @param maxGames the maximum games that may run on the server at one time
  * @param gameCreator a function that can be called to create a game instance
  */
-public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator gameCreator) {
+public record GameSdkConfig(int minPlayers, int maxGames, @NotNull GameCreator gameCreator) {
 
     public static @NotNull Builder builder() {
         return new BuilderImpl();
@@ -38,8 +38,8 @@ public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator g
 
     private static final class BuilderImpl implements Builder, Builder.MaxGamesStep, Builder.GameCreatorStep, Builder.EndStep {
 
-        private int maxGames;
         private int minPlayers;
+        private int maxGames;
         private GameCreator gameCreator;
 
         @Override
@@ -62,7 +62,7 @@ public record GameSdkConfig(int maxGames, int minPlayers, @NotNull GameCreator g
 
         @Override
         public @NotNull GameSdkConfig build() {
-            return new GameSdkConfig(this.maxGames, this.minPlayers, this.gameCreator);
+            return new GameSdkConfig(this.minPlayers, this.maxGames, this.gameCreator);
         }
     }
 }

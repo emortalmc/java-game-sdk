@@ -19,10 +19,10 @@ import java.util.UUID;
 
 public abstract class Game implements PacketGroupingAudience {
 
-    private final GameCreationInfo creationInfo;
-    private final EventNode<Event> eventNode;
+    private final @NotNull GameCreationInfo creationInfo;
+    private final @NotNull EventNode<Event> eventNode;
 
-    protected final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
+    private final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
 
     protected Game(@NotNull GameCreationInfo creationInfo) {
         this.creationInfo = creationInfo;
@@ -42,9 +42,9 @@ public abstract class Game implements PacketGroupingAudience {
 
     /**
      * Called when a player logs in.
+     *
      * <p>
-     * This exists because having the games register their own login listener isn't
-     * fast enough for running in production.
+     * This is called <b>after</b> the player has been added to the players list.
      */
     public abstract void onJoin(@NotNull Player player);
 
@@ -52,6 +52,9 @@ public abstract class Game implements PacketGroupingAudience {
      * Called when a player leaves the game.
      * <p>
      * This allows the game to clean up after a player if they decide to leave mid game.
+     *
+     * <p>
+     * This is called <b>after</b> the player has been removed from the players list.
      */
     public abstract void onLeave(@NotNull Player player);
 
@@ -69,6 +72,9 @@ public abstract class Game implements PacketGroupingAudience {
         return this.creationInfo;
     }
 
+    /**
+     * WARNING: This set is modifiable, but MUST NOT be modified by the game.
+     */
     @Override
     public final @NotNull Set<Player> getPlayers() {
         return this.players;

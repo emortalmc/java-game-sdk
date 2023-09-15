@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
 public final class AgonesGameUpdateListener implements GameUpdateListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgonesGameUpdateListener.class);
 
-    private final GameSdkConfig config;
-    private final SDKGrpc.SDKStub sdk;
+    private final @NotNull GameSdkConfig config;
+    private final @NotNull SDKGrpc.SDKStub sdk;
 
     private final AtomicInteger gameCount = new AtomicInteger(0);
     private final AtomicBoolean shouldAllocate = new AtomicBoolean(false);
@@ -34,7 +34,9 @@ public final class AgonesGameUpdateListener implements GameUpdateListener {
 
     @Override
     public void onGameRemoved(@NotNull Game game) {
-        this.updateShouldAllocate(this.gameCount.decrementAndGet());
+        int newGameCount = this.gameCount.decrementAndGet();
+        this.updateShouldAllocate(newGameCount);
+        this.updateReadyIfEmpty(newGameCount);
     }
 
     private void updateShouldAllocate(int gameCount) {
@@ -46,10 +48,11 @@ public final class AgonesGameUpdateListener implements GameUpdateListener {
 
         LOGGER.info("Updating should allocate to {} (game count: {})", shouldAllocate, gameCount);
 
-        var keyValue = AgonesSDKProto.KeyValue.newBuilder().setKey("should-allocate").setValue(String.valueOf(shouldAllocate)).build();
+        AgonesSDKProto.KeyValue keyValue = AgonesSDKProto.KeyValue.newBuilder()
+                .setKey("should-allocate")
+                .setValue(String.valueOf(shouldAllocate))
+                .build();
         this.sdk.setLabel(keyValue, new IgnoredStreamObserver<>());
-
-        this.updateReadyIfEmpty(gameCount);
     }
 
     private void updateReadyIfEmpty(int gameCount) {

@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 final class ProductionGameHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductionGameHandler.class);
 
-    private final GameManager gameManager;
+    private final @NotNull GameManager gameManager;
 
     ProductionGameHandler(@NotNull GameManager gameManager, @NotNull EventNode<Event> eventNode) {
         this.gameManager = gameManager;
@@ -28,6 +28,7 @@ final class ProductionGameHandler {
         Game game = null;
         for (Game currentGame : this.gameManager.getGames()) {
             if (!currentGame.getCreationInfo().playerIds().contains(player.getUuid())) continue; // the game is not for this player
+
             game = currentGame;
             break;
         }
@@ -37,8 +38,7 @@ final class ProductionGameHandler {
             return;
         }
 
-        game.getPlayers().add(player);
-        game.onJoin(player);
+        GamePlayerTracker.addPlayer(game, player);
         event.setSpawningInstance(game.getSpawningInstance());
     }
 
@@ -48,7 +48,6 @@ final class ProductionGameHandler {
         Game game = this.gameManager.findGame(player);
         if (game == null) return;
 
-        game.getPlayers().remove(player);
-        game.onLeave(player);
+        GamePlayerTracker.removePlayer(game, player);
     }
 }

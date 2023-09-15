@@ -28,11 +28,11 @@ final class PreGameInitializer {
     // I really didn't like the dependency this had on the game manager, so I thought this was probably the best way to separate them.
     private static final EventNode<Event> PRE_GAME_PARENT = EventNode.all("pre_game");
 
-    private final GameSdkConfig config;
-    private final Game game;
+    private final @NotNull GameSdkConfig config;
+    private final @NotNull Game game;
 
     // Pre-start items
-    private final EventNode<Event> preGameNode;
+    private final @NotNull EventNode<Event> preGameNode;
     private final @Nullable Task startTimeOutTask; // called if not all players have joined and determines whether to start the game or cancel it.
 
     private final AtomicInteger playerCount = new AtomicInteger();
@@ -84,6 +84,6 @@ final class PreGameInitializer {
 
     private void cleanUpPreGame() {
         if (this.startTimeOutTask != null) this.startTimeOutTask.cancel();
-        if (this.preGameNode != null) PRE_GAME_PARENT.removeChild(this.preGameNode);
+        PRE_GAME_PARENT.removeChild(this.preGameNode);
     }
 }
