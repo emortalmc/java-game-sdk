@@ -6,7 +6,6 @@ import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.util.GameEventPredicates;
 import net.minestom.server.MinecraftServer;
-import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
@@ -18,15 +17,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.temporal.ChronoUnit;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class PreGameInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PreGameInitializer.class);
     // I really didn't like the dependency this had on the game manager, so I thought this was probably the best way to separate them.
     private static final EventNode<Event> PRE_GAME_PARENT = EventNode.all("pre_game");
+
+    static {
+        MinecraftServer.getGlobalEventHandler().addChild(PRE_GAME_PARENT);
+    }
 
     private final @NotNull GameSdkConfig config;
     private final @NotNull Game game;
@@ -64,21 +64,13 @@ final class PreGameInitializer {
     }
 
     private void timeOut() {
-        Set<UUID> expectedPlayers = this.game.getCreationInfo().playerIds();
-
-        Set<UUID> actualPlayers = new HashSet<>();
-        for (Player player : this.game.getPlayers()) {
-            actualPlayers.add(player.getUuid());
-        }
-
-        Set<UUID> missingPlayers = new HashSet<>(expectedPlayers);
-        missingPlayers.removeAll(actualPlayers);
-
-        if (expectedPlayers.size() - missingPlayers.size() < this.config.minPlayers()) {
-            this.game.finish();
-        } else {
+        int actualPlayerCount = this.game.getPlayers().size();
+        if (actualPlayerCount >= this.config.minPlayers()) {
             this.cleanUpPreGame();
             this.game.start();
+        } else {
+            // TODO: This isn't a normal finish. We should inform players that the game couldn't start and send them back to the lobby.
+            this.game.finish();
         }
     }
 
