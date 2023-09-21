@@ -63,7 +63,7 @@ public final class GameManager implements GameProvider {
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
         Game game = this.config.gameCreator().createGame(creationInfo);
         this.registerGame(game);
-        this.updateListener.onGameAdded(game);
+        Thread.startVirtualThread(() -> this.updateListener.onGameAdded(game));
         return game;
     }
 
@@ -103,7 +103,7 @@ public final class GameManager implements GameProvider {
 
         // We call this here to ensure all the game's players are disconnected and the game is unregistered, so the check for the
         // player count will actually see the new player count after the players are disconnected.
-        this.updateListener.onGameRemoved(game);
+        Thread.startVirtualThread(() -> this.updateListener.onGameRemoved(game));
     }
 
     private void kickAllRemainingPlayers(@NotNull Game game) {

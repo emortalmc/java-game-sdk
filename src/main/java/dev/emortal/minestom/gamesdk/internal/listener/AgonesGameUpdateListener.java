@@ -29,7 +29,8 @@ public final class AgonesGameUpdateListener implements GameUpdateListener {
 
     @Override
     public void onGameAdded(@NotNull Game game) {
-        this.updateShouldAllocate(this.gameCount.incrementAndGet());
+        int newGameCount = this.gameCount.incrementAndGet();
+        this.updateShouldAllocate(newGameCount);
     }
 
     @Override
@@ -40,17 +41,17 @@ public final class AgonesGameUpdateListener implements GameUpdateListener {
     }
 
     private void updateShouldAllocate(int gameCount) {
-        boolean shouldAllocate = gameCount < this.config.maxGames();
+        boolean allocate = gameCount < this.config.maxGames();
 
-        boolean changed = this.shouldAllocate.getAndSet(shouldAllocate) != shouldAllocate;
+        boolean changed = this.shouldAllocate.getAndSet(allocate) != allocate;
         // If the current value is the same as the new value, don't bother updating
         if (!changed) return;
 
-        LOGGER.info("Updating should allocate to {} (game count: {})", shouldAllocate, gameCount);
+        LOGGER.info("Updating should allocate to {} (game count: {})", allocate, gameCount);
 
         AgonesSDKProto.KeyValue keyValue = AgonesSDKProto.KeyValue.newBuilder()
                 .setKey("should-allocate")
-                .setValue(String.valueOf(shouldAllocate))
+                .setValue(String.valueOf(allocate))
                 .build();
         this.sdk.setLabel(keyValue, new IgnoredStreamObserver<>());
     }
