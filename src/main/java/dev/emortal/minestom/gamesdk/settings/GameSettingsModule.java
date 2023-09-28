@@ -34,7 +34,7 @@ public final class GameSettingsModule extends Module {
 
     @Blocking
     public <T extends Message> @NotNull T getSettings(@NotNull GameSettingsType<T> type, @NotNull UUID playerId) {
-        var request = GamePlayerDataProto.GamePlayerDataRequest.newBuilder()
+        var request = GamePlayerDataProto.GetGamePlayerDataRequest.newBuilder()
                 .setPlayerId(playerId.toString())
                 .setGameMode(type.mode())
                 .build();

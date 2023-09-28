@@ -17,21 +17,12 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:63cda38")
+    api("dev.emortal.minestom:core:a0c6b73")
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(20))
-    }
-}
-
-tasks {
-    compileJava {
-        options.compilerArgs.addAll(listOf(
-                "--release", "20",
-                "--enable-preview"
-        ))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
