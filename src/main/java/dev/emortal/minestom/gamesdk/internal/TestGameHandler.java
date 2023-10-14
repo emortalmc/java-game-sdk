@@ -30,9 +30,10 @@ final class TestGameHandler {
 
     private @Nullable GameHolder holder;
 
-    TestGameHandler(@NotNull GameManager gameManager, @NotNull EventNode<Event> eventNode) {
+    TestGameHandler(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
 
+        EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
         eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }

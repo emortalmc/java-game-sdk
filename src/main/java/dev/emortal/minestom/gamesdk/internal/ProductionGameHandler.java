@@ -15,9 +15,10 @@ final class ProductionGameHandler {
 
     private final @NotNull GameManager gameManager;
 
-    ProductionGameHandler(@NotNull GameManager gameManager, @NotNull EventNode<Event> eventNode) {
+    ProductionGameHandler(@NotNull GameManager gameManager) {
         this.gameManager = gameManager;
 
+        EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
         eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }

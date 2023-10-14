@@ -10,10 +10,7 @@ import dev.emortal.minestom.gamesdk.game.GameProvider;
 import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
-import net.minestom.server.event.Event;
-import net.minestom.server.event.EventNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -29,19 +26,11 @@ public final class GameManager implements GameProvider {
     private final @NotNull GameSdkConfig config;
     private final @NotNull GameUpdateListener updateListener;
 
-    // The event node used by the game manager to listen for events.
-    private final EventNode<Event> eventNode = EventNode.all("game-manager");
-    // The event node that is the parent of all the game event nodes, for an easy tree view when looking for game nodes.
-    private final EventNode<Event> gamesEventNode = EventNode.all("games");
-
     private final Set<Game> games = Collections.synchronizedSet(new HashSet<>());
 
     public GameManager(@NotNull GameSdkConfig config, @NotNull GameUpdateListener updateListener) {
         this.config = config;
         this.updateListener = updateListener;
-
-        MinecraftServer.getGlobalEventHandler().addChild(this.eventNode);
-        MinecraftServer.getGlobalEventHandler().addChild(this.gamesEventNode);
 
         if (MinestomGameServer.TEST_MODE) {
             this.initTestMode();
@@ -49,15 +38,15 @@ public final class GameManager implements GameProvider {
             this.initProductionMode();
         }
 
-        this.eventNode.addListener(GameFinishedEvent.class, this::onGameFinish);
+        GameEventNodes.GAME_MANAGER.addListener(GameFinishedEvent.class, this::onGameFinish);
     }
 
     private void initTestMode() {
-        new TestGameHandler(this, this.eventNode);
+        new TestGameHandler(this);
     }
 
     private void initProductionMode() {
-        new ProductionGameHandler(this, this.eventNode);
+        new ProductionGameHandler(this);
     }
 
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
@@ -73,7 +62,7 @@ public final class GameManager implements GameProvider {
             LOGGER.warn("Attempted to add game {} that is already registered", game);
             return;
         }
-        this.gamesEventNode.addChild(game.getEventNode());
+        GameEventNodes.GAMES.addChild(game.getEventNode());
     }
 
     private void removeGame(@NotNull Game game) {
@@ -82,7 +71,7 @@ public final class GameManager implements GameProvider {
             LOGGER.warn("Attempted to remove game {} that is not registered", game);
             return;
         }
-        this.gamesEventNode.removeChild(game.getEventNode());
+        GameEventNodes.GAMES.removeChild(game.getEventNode());
     }
 
     private void onGameFinish(@NotNull GameFinishedEvent event) {

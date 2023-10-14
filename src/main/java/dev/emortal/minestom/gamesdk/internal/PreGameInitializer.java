@@ -21,12 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 final class PreGameInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PreGameInitializer.class);
-    // I really didn't like the dependency this had on the game manager, so I thought this was probably the best way to separate them.
-    private static final EventNode<Event> PRE_GAME_PARENT = EventNode.all("pre_game");
-
-    static {
-        MinecraftServer.getGlobalEventHandler().addChild(PRE_GAME_PARENT);
-    }
 
     private final @NotNull GameSdkConfig config;
     private final @NotNull Game game;
@@ -44,7 +38,7 @@ final class PreGameInitializer {
         GameCreationInfo creationInfo = game.getCreationInfo();
 
         this.preGameNode = EventNode.event(creationInfo.id(), EventFilter.ALL, GameEventPredicates.inCreationInfo(creationInfo));
-        PRE_GAME_PARENT.addChild(this.preGameNode);
+        GameEventNodes.PRE_GAME.addChild(this.preGameNode);
 
         this.preGameNode.addListener(PlayerLoginEvent.class, event -> {
             int newCount = this.playerCount.incrementAndGet();
@@ -76,6 +70,6 @@ final class PreGameInitializer {
 
     private void cleanUpPreGame() {
         if (this.startTimeOutTask != null) this.startTimeOutTask.cancel();
-        PRE_GAME_PARENT.removeChild(this.preGameNode);
+        GameEventNodes.PRE_GAME.removeChild(this.preGameNode);
     }
 }
