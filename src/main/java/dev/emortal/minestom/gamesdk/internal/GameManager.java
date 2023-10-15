@@ -115,7 +115,7 @@ public final class GameManager implements GameProvider {
         return null;
     }
 
-    @NotNull Set<Game> getGames() {
+    public @NotNull Set<Game> getGames() {
         return this.games;
     }
 }

@@ -15,6 +15,7 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public final class AgonesGameListener {
     private void movePlayersOnThisServer(@NotNull Game newGame, @NotNull Set<UUID> playerIds) {
         ConnectionManager connectionManager = MinecraftServer.getConnectionManager();
 
-        CompletableFuture<Void>[] futures = new CompletableFuture[playerIds.size()];
+        Set<CompletableFuture<Void>> futures = new HashSet<>();
         int i = 0;
 
         for (UUID playerId : playerIds) {
@@ -83,10 +84,11 @@ public final class AgonesGameListener {
             GamePlayerTracker.addPlayer(newGame, player);
 
             // Increment after using the index
-            futures[i++] = player.setInstance(newGame.getSpawningInstance());
+            futures.add(player.setInstance(newGame.getSpawningInstance()));
             player.respawn();
         }
 
-        CompletableFuture.allOf(futures).join();
+        if (futures.isEmpty()) return;
+        CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
     }
 }
