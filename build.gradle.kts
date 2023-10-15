@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:a0c6b73")
+    api("dev.emortal.minestom:core:64b96bc")
 }
 
 java {
