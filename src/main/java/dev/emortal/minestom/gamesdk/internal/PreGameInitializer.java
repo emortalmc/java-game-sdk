@@ -46,12 +46,15 @@ final class PreGameInitializer {
 
             LOGGER.info("Starting game {} early because all players have joined", creationInfo.id());
             this.cleanUpPreGame();
+
+            System.out.println("Event nodes: " + MinecraftServer.getGlobalEventHandler().toString());
+
             game.start();
         });
 
         // If in test mode, we don't want a countdown
         if (!MinestomGameServer.TEST_MODE) {
-            this.startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(5, ChronoUnit.SECONDS).schedule();
+            this.startTimeOutTask = MinecraftServer.getSchedulerManager().buildTask(this::timeOut).delay(3, ChronoUnit.SECONDS).schedule();
         } else {
             this.startTimeOutTask = null;
         }
