@@ -45,9 +45,9 @@ final class PreGameInitializer {
             if (newCount != creationInfo.playerIds().size()) return;
 
             LOGGER.info("Starting game {} early because all players have joined", creationInfo.id());
+            System.out.println("Event nodes: " + MinecraftServer.getGlobalEventHandler());
+            
             this.cleanUpPreGame();
-
-            System.out.println("Event nodes: " + MinecraftServer.getGlobalEventHandler().toString());
 
             game.start();
         });
