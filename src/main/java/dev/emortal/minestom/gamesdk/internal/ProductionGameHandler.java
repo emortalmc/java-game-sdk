@@ -19,29 +19,26 @@ final class ProductionGameHandler {
         this.gameManager = gameManager;
 
         EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
-        eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
+//        eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }
 
-    private void onJoin(@NotNull PlayerLoginEvent event) {
-        Player player = event.getPlayer();
-
-        Game game = null;
-        for (Game currentGame : this.gameManager.getGames()) {
-            if (!currentGame.getCreationInfo().playerIds().contains(player.getUuid())) continue; // the game is not for this player
-
-            game = currentGame;
-            break;
-        }
-
-        if (game == null) {
-            LOGGER.error("No game could be found for player {}", player.getUsername());
-            return;
-        }
-
-        GamePlayerTracker.addPlayer(game, player);
-        event.setSpawningInstance(game.getSpawningInstance());
-    }
+//    private void onJoin(@NotNull PlayerLoginEvent event) {
+//        Player player = event.getPlayer();
+//
+//        Game game = null;
+//        for (Game currentGame : this.gameManager.getGames()) {
+//            if (!currentGame.getCreationInfo().playerIds().contains(player.getUuid())) continue; // the game is not for this player
+//
+//            game = currentGame;
+//            break;
+//        }
+//
+//        if (game == null) {
+//            LOGGER.error("No game could be found for player {}", player.getUsername());
+//            return;
+//        }
+//    }
 
     private void onLeave(@NotNull PlayerDisconnectEvent event) {
         Player player = event.getPlayer();
