@@ -10,6 +10,7 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventFilter;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.PlayerLoginEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import net.minestom.server.timer.Task;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,18 +41,12 @@ final class PreGameInitializer {
         this.preGameNode = EventNode.event(creationInfo.id(), EventFilter.ALL, GameEventPredicates.inCreationInfo(creationInfo));
         GameEventNodes.PRE_GAME.addChild(this.preGameNode);
 
-        this.preGameNode.addListener(PlayerLoginEvent.class, event -> {
-            GamePlayerTracker.addPlayer(game, event.getPlayer());
-            event.setSpawningInstance(game.getSpawningInstance());
-
+        this.preGameNode.addListener(PlayerSpawnEvent.class, event -> {
             int newCount = this.playerCount.incrementAndGet();
             if (newCount != creationInfo.playerIds().size()) return;
 
             LOGGER.info("Starting game {} early because all players have joined", creationInfo.id());
-            System.out.println("Event nodes: " + MinecraftServer.getGlobalEventHandler());
-
             this.cleanUpPreGame();
-
             game.start();
         });
 
