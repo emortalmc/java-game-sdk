@@ -84,7 +84,7 @@ public final class AgonesGameListener {
             GamePlayerTracker.addPlayer(newGame, player);
 
             // Increment after using the index
-            futures.add(player.setInstance(newGame.getSpawningInstance()));
+            futures.add(player.setInstance(newGame.getSpawningInstance(player)));
             player.respawn();
         }
 

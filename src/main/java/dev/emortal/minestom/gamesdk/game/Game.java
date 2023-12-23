@@ -58,7 +58,7 @@ public abstract class Game implements PacketGroupingAudience {
      */
     public abstract void onLeave(@NotNull Player player);
 
-    public abstract @NotNull Instance getSpawningInstance();
+    public abstract @NotNull Instance getSpawningInstance(@NotNull Player player);
 
     public final @NotNull EventNode<Event> getEventNode() {
         return this.eventNode;

@@ -101,7 +101,7 @@ public final class GameManager implements GameProvider {
             if (!player.isOnline()) continue;
 
             // The player may have been moved to a different game on the same server
-            if (player.getInstance() != game.getSpawningInstance()) continue;
+            if (player.getInstance() != game.getSpawningInstance(player)) continue;
 
             player.kick(Component.text("The game ended but we weren't able to connect you to a lobby. Please reconnect.", NamedTextColor.RED));
         }

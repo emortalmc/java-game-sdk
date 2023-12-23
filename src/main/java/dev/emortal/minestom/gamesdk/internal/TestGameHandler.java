@@ -74,7 +74,7 @@ final class TestGameHandler {
             this.players.add(player.getUuid());
             GamePlayerTracker.addPlayer(this.game, player);
 
-            event.setSpawningInstance(this.game.getSpawningInstance());
+            event.setSpawningInstance(this.game.getSpawningInstance(player));
         }
 
         void onLeave(@NotNull Player player) {

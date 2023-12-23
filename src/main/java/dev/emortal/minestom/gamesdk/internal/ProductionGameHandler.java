@@ -40,7 +40,7 @@ final class ProductionGameHandler {
         }
 
         GamePlayerTracker.addPlayer(game, player);
-        event.setSpawningInstance(game.getSpawningInstance());
+        event.setSpawningInstance(game.getSpawningInstance(player));
     }
 
     private void onLeave(@NotNull PlayerDisconnectEvent event) {
