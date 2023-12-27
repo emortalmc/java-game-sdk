@@ -12,10 +12,12 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.instance.Instance;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Game implements PacketGroupingAudience, TrackableGame {
 
@@ -23,6 +25,9 @@ public abstract class Game implements PacketGroupingAudience, TrackableGame {
     private final @NotNull EventNode<Event> eventNode;
 
     private final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
+
+    private final @NotNull AtomicBoolean gameTrackerUpdateQueued = new AtomicBoolean(false);
+    private long lastGameTrackerUpdate = 0L;
 
     protected Game(@NotNull GameCreationInfo creationInfo) {
         this.creationInfo = creationInfo;
@@ -51,7 +56,7 @@ public abstract class Game implements PacketGroupingAudience, TrackableGame {
     /**
      * Called when a player leaves the game.
      * <p>
-     * This allows the game to clean up after a player if they decide to leave mid game.
+     * This allows the game to clean up after a player if they decide to leave mid-game.
      *
      * <p>
      * This is called <b>after</b> the player has been removed from the players list.
@@ -82,5 +87,27 @@ public abstract class Game implements PacketGroupingAudience, TrackableGame {
 
     public final void finish() {
         MinecraftServer.getGlobalEventHandler().call(new GameFinishedEvent(this));
+    }
+
+    public void markTrackerUpdated() {
+        this.lastGameTrackerUpdate = System.currentTimeMillis();
+        this.gameTrackerUpdateQueued.set(false);
+    }
+
+    /**
+     * Marks the game as pending an update from the tracker - it may be in progress.
+     * An update should not be triggered whilst this is false, so it should always be called before updating and
+     * {@link #markTrackerUpdated()} should be called after updating.
+     * <p>
+     * After this operation, the flag is guaranteed to be true.
+     *
+     * @return the initial value of the flag
+     */
+    public boolean markTrackerUpdateQueued() {
+        return this.gameTrackerUpdateQueued.getAndSet(true);
+    }
+
+    public long getLastGameTrackerUpdate() {
+        return this.lastGameTrackerUpdate;
     }
 }

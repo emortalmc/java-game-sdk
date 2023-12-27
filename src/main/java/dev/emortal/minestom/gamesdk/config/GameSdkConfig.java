@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * @param maxGames    the maximum games that may run on the server at one time
  * @param gameCreator a function that can be called to create a game instance
  */
-public record GameSdkConfig(int minPlayers, int maxGames, int trackingUpdateInterval,
+public record GameSdkConfig(int minPlayers, int maxGames, int minTrackingInterval, int maxTrackingInterval,
                             @NotNull GameCreator gameCreator) {
 
     public static @NotNull Builder builder() {
@@ -29,7 +29,9 @@ public record GameSdkConfig(int minPlayers, int maxGames, int trackingUpdateInte
 
         interface GameCreatorStep {
 
-            @NotNull GameCreatorStep trackingUpdateInterval(int interval);
+            @NotNull GameCreatorStep minTrackingInterval(int interval);
+
+            @NotNull GameCreatorStep maxTrackingInterval(int interval);
 
             @NotNull EndStep gameCreator(@NotNull GameCreator creator);
         }
@@ -44,7 +46,8 @@ public record GameSdkConfig(int minPlayers, int maxGames, int trackingUpdateInte
 
         private int minPlayers;
         private int maxGames;
-        private int trackingUpdateInterval = GameTracker.DEFAULT_UPDATE_INTERVAL;
+        private int minTrackingInterval = GameTracker.DEFAULT_MIN_UPDATE_INTERVAL;
+        private int maxTrackingInterval = GameTracker.DEFAULT_MAX_UPDATE_INTERVAL;
         private GameCreator gameCreator;
 
         @Override
@@ -60,8 +63,14 @@ public record GameSdkConfig(int minPlayers, int maxGames, int trackingUpdateInte
         }
 
         @Override
-        public @NotNull GameCreatorStep trackingUpdateInterval(int interval) {
-            this.trackingUpdateInterval = interval;
+        public @NotNull GameCreatorStep minTrackingInterval(int interval) {
+            this.minTrackingInterval = interval;
+            return this;
+        }
+
+        @Override
+        public @NotNull GameCreatorStep maxTrackingInterval(int interval) {
+            this.maxTrackingInterval = interval;
             return this;
         }
 
@@ -73,7 +82,8 @@ public record GameSdkConfig(int minPlayers, int maxGames, int trackingUpdateInte
 
         @Override
         public @NotNull GameSdkConfig build() {
-            return new GameSdkConfig(this.minPlayers, this.maxGames, this.trackingUpdateInterval, this.gameCreator);
+            return new GameSdkConfig(this.minPlayers, this.maxGames, this.minTrackingInterval, this.maxTrackingInterval,
+                    this.gameCreator);
         }
     }
 }

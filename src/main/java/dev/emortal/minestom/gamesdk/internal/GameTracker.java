@@ -14,20 +14,25 @@ import dev.emortal.minestom.core.module.messaging.MessagingModule;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.Game;
-import dev.emortal.minestom.gamesdk.internal.GameManager;
+import dev.emortal.minestom.gamesdk.game.GameUpdateRequestEvent;
 import dev.emortal.minestom.gamesdk.internal.listener.GameStatusListener;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.Event;
+import net.minestom.server.event.EventNode;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.*;
 
 public final class GameTracker implements GameStatusListener {
+    public static final int DEFAULT_MIN_UPDATE_INTERVAL = 5;
+    public static final int DEFAULT_MAX_UPDATE_INTERVAL = 180; // 3 minutes
+
     public static final int DEFAULT_UPDATE_INTERVAL = 10;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GameTracker.class);
@@ -39,15 +44,33 @@ public final class GameTracker implements GameStatusListener {
                             LOGGER.error("An error occurred while updating games", exception))
                     .factory()
     );
+    private static final EventNode<Event> EVENT_NODE = GameEventNodes.GAME_MANAGER;
 
-    private final @NotNull GameManager gameManager;
     private final @NotNull FriendlyKafkaProducer kafkaProducer;
+    private final @NotNull GameSdkConfig config;
 
-    public GameTracker(@NotNull GameManager gameManager, @NotNull MessagingModule messagingModule, @NotNull GameSdkConfig gameSdkConfig) {
-        this.gameManager = gameManager;
+    private final @NotNull Map<Game, ScheduledFuture<?>> gameMaxTimeUpdateTasks = new ConcurrentHashMap<>();
+
+    public GameTracker(@NotNull MessagingModule messagingModule, @NotNull GameSdkConfig config) {
         this.kafkaProducer = messagingModule.getKafkaProducer();
+        this.config = config;
 
-        SCHEDULER.scheduleAtFixedRate(this::updateGames, gameSdkConfig.trackingUpdateInterval(), gameSdkConfig.trackingUpdateInterval(), TimeUnit.SECONDS);
+        EVENT_NODE.addListener(GameUpdateRequestEvent.class, this::onGameUpdateRequest);
+    }
+
+    private void maxTimeUpdate(@NotNull Game game) {
+        long nextExpectedUpdate = game.getLastGameTrackerUpdate() + (this.config.maxTrackingInterval() * 1000L);
+        if (nextExpectedUpdate < System.currentTimeMillis()) {
+            // Game has been updated in the meantime, let's reschedule this task
+
+            this.gameMaxTimeUpdateTasks.put(game, SCHEDULER.schedule(() -> {
+                this.maxTimeUpdate(game);
+            }, nextExpectedUpdate - System.currentTimeMillis(), TimeUnit.MILLISECONDS));
+            return;
+        }
+
+        // Game hasn't been updated in a while, let's update it now
+        this.updateGame(game);
     }
 
     @Override
@@ -59,11 +82,18 @@ public final class GameTracker implements GameStatusListener {
                 .addAllContent(this.packMessages(game.createGameStartExtraData()))
                 .build();
 
+        this.gameMaxTimeUpdateTasks.put(game, SCHEDULER.schedule(() -> {
+            this.maxTimeUpdate(game);
+        }, this.config.maxTrackingInterval(), TimeUnit.MILLISECONDS));
+
         this.kafkaProducer.produceAndForget(message);
     }
 
     @Override
     public void onGameRemoved(@NotNull Game game) {
+        // Cancel the max time update task
+        this.gameMaxTimeUpdateTasks.remove(game).cancel(false);
+
         GameFinishMessage message = GameFinishMessage.newBuilder()
                 .setCommonData(this.createCommonGameData(game))
                 .addAllContent(this.packMessages(game.createGameFinishExtraData()))
@@ -73,13 +103,33 @@ public final class GameTracker implements GameStatusListener {
         this.kafkaProducer.produceAndForget(message);
     }
 
-    private void updateGames() {
-        for (Game game : this.gameManager.getGames()) {
-            this.updateGame(game);
+    private void onGameUpdateRequest(@NotNull GameUpdateRequestEvent event) {
+        Game game = event.game();
+        long minNextUpdate = game.getLastGameTrackerUpdate() + (this.config.minTrackingInterval() * 1000L);
+
+        boolean wasMarkedForQueue = game.markTrackerUpdateQueued();
+        if (wasMarkedForQueue) {
+            // Game was already queued for an update, ignore
+            return;
         }
+
+        if (minNextUpdate > System.currentTimeMillis()) {
+            // Game was updated too recently, queue an update if it isn't already queued
+
+            // Schedule an update for the next interval
+            SCHEDULER.schedule(() -> {
+                game.markTrackerUpdated();
+                this.updateGame(game);
+            }, minNextUpdate - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            return;
+        }
+
+        // Last game update is longer than the min, update immediately
+        this.updateGame(game);
     }
 
     private void updateGame(@NotNull Game game) {
+        game.markTrackerUpdated();
         GameUpdateMessage message = GameUpdateMessage.newBuilder()
                 .setCommonData(this.createCommonGameData(game))
                 .addAllContent(this.packMessages(game.createGameUpdateExtraData()))
