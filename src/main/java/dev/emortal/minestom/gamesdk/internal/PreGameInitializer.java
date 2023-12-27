@@ -32,7 +32,7 @@ final class PreGameInitializer {
 
     private final AtomicInteger playerCount = new AtomicInteger();
 
-    public PreGameInitializer(@NotNull GameSdkConfig config, @NotNull Game game) {
+    PreGameInitializer(@NotNull GameManager gameManager, @NotNull GameSdkConfig config, @NotNull Game game) {
         this.config = config;
         this.game = game;
 
@@ -47,7 +47,7 @@ final class PreGameInitializer {
 
             LOGGER.info("Starting game {} early because all players have joined", creationInfo.id());
             this.cleanUpPreGame();
-            game.start();
+            gameManager.startGame(game);
         });
 
         // If in test mode, we don't want a countdown

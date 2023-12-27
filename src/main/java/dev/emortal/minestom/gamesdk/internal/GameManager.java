@@ -7,7 +7,7 @@ import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameFinishedEvent;
 import dev.emortal.minestom.gamesdk.game.GameProvider;
-import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
+import dev.emortal.minestom.gamesdk.internal.listener.GameStatusListener;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.entity.Player;
@@ -18,19 +18,20 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class GameManager implements GameProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(GameManager.class);
 
     private final @NotNull GameSdkConfig config;
-    private final @NotNull GameUpdateListener updateListener;
 
+    private final List<GameStatusListener> statusListeners = new CopyOnWriteArrayList<>();
     private final Set<Game> games = Collections.synchronizedSet(new HashSet<>());
 
-    public GameManager(@NotNull GameSdkConfig config, @NotNull GameUpdateListener updateListener) {
+    public GameManager(@NotNull GameSdkConfig config) {
         this.config = config;
-        this.updateListener = updateListener;
 
         if (MinestomGameServer.TEST_MODE) {
             this.initTestMode();
@@ -52,7 +53,11 @@ public final class GameManager implements GameProvider {
     @NotNull Game createGame(@NotNull GameCreationInfo creationInfo) {
         Game game = this.config.gameCreator().createGame(creationInfo);
         this.registerGame(game);
-        Thread.startVirtualThread(() -> this.updateListener.onGameAdded(game));
+        Thread.startVirtualThread(() -> {
+            for (GameStatusListener listener : this.statusListeners) {
+                listener.onGameAdded(game);
+            }
+        });
         return game;
     }
 
@@ -63,6 +68,13 @@ public final class GameManager implements GameProvider {
             return;
         }
         GameEventNodes.GAMES.addChild(game.getEventNode());
+    }
+
+    public void startGame(@NotNull Game game) {
+        game.start();
+        for (GameStatusListener listener : this.statusListeners) {
+            listener.onGameStart(game);
+        }
     }
 
     private void removeGame(@NotNull Game game) {
@@ -82,6 +94,10 @@ public final class GameManager implements GameProvider {
             return;
         }
 
+        for (GameStatusListener listener : this.statusListeners) {
+            listener.onGameFinish(game);
+        }
+
         this.removeGame(game);
         KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> this.cleanUpGame(game), () -> this.cleanUpGame(game));
     }
@@ -92,7 +108,11 @@ public final class GameManager implements GameProvider {
 
         // We call this here to ensure all the game's players are disconnected and the game is unregistered, so the check for the
         // player count will actually see the new player count after the players are disconnected.
-        Thread.startVirtualThread(() -> this.updateListener.onGameRemoved(game));
+        Thread.startVirtualThread(() -> {
+            for (GameStatusListener listener : this.statusListeners) {
+                listener.onGameRemoved(game);
+            }
+        });
     }
 
     private void kickAllRemainingPlayers(@NotNull Game game) {
@@ -117,5 +137,9 @@ public final class GameManager implements GameProvider {
 
     public @NotNull Set<Game> getGames() {
         return this.games;
+    }
+
+    public void addGameStatusListener(@NotNull GameStatusListener statusListener) {
+        this.statusListeners.add(statusListener);
     }
 }

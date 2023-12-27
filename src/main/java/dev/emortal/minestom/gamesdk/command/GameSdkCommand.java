@@ -50,7 +50,7 @@ public final class GameSdkCommand extends Command {
         }
 
         sender.sendMessage("Starting game...");
-        game.start();
+        this.gameManager.startGame(game);
     }
 
     private void executeList(@NotNull CommandSender sender, @NotNull CommandContext context) {

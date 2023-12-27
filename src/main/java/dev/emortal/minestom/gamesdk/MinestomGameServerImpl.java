@@ -13,8 +13,8 @@ import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameProvider;
 import dev.emortal.minestom.gamesdk.internal.AgonesGameListener;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
-import dev.emortal.minestom.gamesdk.internal.listener.AgonesGameUpdateListener;
-import dev.emortal.minestom.gamesdk.internal.listener.GameUpdateListener;
+import dev.emortal.minestom.gamesdk.internal.listener.AgonesGameStatusListener;
+import dev.emortal.minestom.gamesdk.internal.GameTracker;
 import net.minestom.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -98,13 +98,13 @@ final class MinestomGameServerImpl implements MinestomGameServer {
             KubernetesModule kubernetesModule = moduleProvider.getModule(KubernetesModule.class);
             boolean hasAgones = kubernetesModule != null && kubernetesModule.getSdk() != null;
 
-            GameUpdateListener updateListener;
-            if (TEST_MODE || !hasAgones) {
-                updateListener = GameUpdateListener.NO_OP;
-            } else {
-                updateListener = new AgonesGameUpdateListener(config, kubernetesModule.getSdk());
+            GameManager gameManager = new GameManager(config);
+            if (!TEST_MODE && hasAgones) {
+                gameManager.addGameStatusListener(new AgonesGameStatusListener(config, kubernetesModule.getSdk()));
             }
-            GameManager gameManager = new GameManager(config, updateListener);
+
+            GameTracker gameTracker = new GameTracker(gameManager, messaging, config);
+            gameManager.addGameStatusListener(gameTracker);
 
             if (messaging != null) {
                 new AgonesGameListener(gameManager, config, messaging);

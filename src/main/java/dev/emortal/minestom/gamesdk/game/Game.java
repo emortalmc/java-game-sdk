@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class Game implements PacketGroupingAudience {
+public abstract class Game implements PacketGroupingAudience, TrackableGame {
 
     private final @NotNull GameCreationInfo creationInfo;
     private final @NotNull EventNode<Event> eventNode;

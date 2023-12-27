@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class AgonesGameUpdateListener implements GameUpdateListener {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AgonesGameUpdateListener.class);
+public final class AgonesGameStatusListener implements GameStatusListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AgonesGameStatusListener.class);
 
     private final @NotNull GameSdkConfig config;
     private final @NotNull SDKGrpc.SDKStub sdk;
@@ -22,7 +22,7 @@ public final class AgonesGameUpdateListener implements GameUpdateListener {
     private final AtomicInteger gameCount = new AtomicInteger(0);
     private final AtomicBoolean shouldAllocate = new AtomicBoolean(false);
 
-    public AgonesGameUpdateListener(@NotNull GameSdkConfig config, @NotNull SDKGrpc.SDKStub sdk) {
+    public AgonesGameStatusListener(@NotNull GameSdkConfig config, @NotNull SDKGrpc.SDKStub sdk) {
         this.config = config;
         this.sdk = sdk;
     }
