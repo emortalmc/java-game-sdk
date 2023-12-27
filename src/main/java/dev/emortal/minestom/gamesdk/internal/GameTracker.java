@@ -74,15 +74,8 @@ public final class GameTracker implements GameStatusListener {
     }
 
     private void updateGames() {
-        System.out.println("updating games");
         for (Game game : this.gameManager.getGames()) {
-            System.out.println("updating game " + game.getCreationInfo().id());
-            try {
-                this.updateGame(game);
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
-            System.out.println("updated game " + game.getCreationInfo().id());
+            this.updateGame(game);
         }
     }
 
