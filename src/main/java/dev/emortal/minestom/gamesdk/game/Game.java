@@ -27,7 +27,8 @@ public abstract class Game implements PacketGroupingAudience, TrackableGame {
     private final Set<Player> players = Collections.synchronizedSet(new HashSet<>());
 
     private final @NotNull AtomicBoolean gameTrackerUpdateQueued = new AtomicBoolean(false);
-    private long lastGameTrackerUpdate = 0L;
+    // don't set this to 0, or it will recursively update tens of thousands of times because of the maxUpdateInterval
+    private long lastGameTrackerUpdate = System.currentTimeMillis();
 
     protected Game(@NotNull GameCreationInfo creationInfo) {
         this.creationInfo = creationInfo;

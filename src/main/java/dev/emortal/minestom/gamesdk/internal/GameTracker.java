@@ -62,7 +62,6 @@ public final class GameTracker implements GameStatusListener {
         long nextExpectedUpdate = game.getLastGameTrackerUpdate() + (this.config.maxTrackingInterval() * 1000L);
         if (nextExpectedUpdate < System.currentTimeMillis()) {
             // Game has been updated in the meantime, let's reschedule this task
-
             this.gameMaxTimeUpdateTasks.put(game, SCHEDULER.schedule(() -> {
                 this.maxTimeUpdate(game);
             }, nextExpectedUpdate - System.currentTimeMillis(), TimeUnit.MILLISECONDS));
