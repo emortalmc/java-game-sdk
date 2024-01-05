@@ -74,18 +74,20 @@ public final class GameTracker implements GameStatusListener {
 
     @Override
     public void onGameStart(@NotNull Game game) {
-        GameStartMessage message = GameStartMessage.newBuilder()
+        GameStartMessage.Builder messageBuilder = GameStartMessage.newBuilder()
                 .setCommonData(this.createCommonGameData(game))
-                .setMapId(game.getCreationInfo().mapId())
                 .setStartTime(ProtoTimestampConverter.now())
-                .addAllContent(this.packMessages(game.createGameStartExtraData()))
-                .build();
+                .addAllContent(this.packMessages(game.createGameStartExtraData()));
+
+        if (game.getCreationInfo().mapId() != null) {
+            messageBuilder.setMapId(game.getCreationInfo().mapId());
+        }
 
         this.gameMaxTimeUpdateTasks.put(game, SCHEDULER.schedule(() -> {
             this.maxTimeUpdate(game);
         }, this.config.maxTrackingInterval(), TimeUnit.MILLISECONDS));
 
-        this.kafkaProducer.produceAndForget(message);
+        this.kafkaProducer.produceAndForget(messageBuilder.build());
     }
 
     @Override
