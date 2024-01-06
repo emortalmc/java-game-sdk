@@ -15,7 +15,6 @@ import net.minestom.server.entity.Player;
 import net.minestom.server.network.ConnectionManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;

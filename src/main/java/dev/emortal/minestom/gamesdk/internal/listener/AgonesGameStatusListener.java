@@ -53,7 +53,7 @@ public final class AgonesGameStatusListener implements GameStatusListener {
                 .setKey("should-allocate")
                 .setValue(String.valueOf(allocate))
                 .build();
-        this.sdk.setLabel(keyValue, new IgnoredStreamObserver<>());
+        Thread.startVirtualThread(() -> this.sdk.setLabel(keyValue, new IgnoredStreamObserver<>()));
     }
 
     private void updateReadyIfEmpty(int gameCount) {
@@ -66,6 +66,6 @@ public final class AgonesGameStatusListener implements GameStatusListener {
         }
 
         LOGGER.info("Marking server as ready as no players are online.");
-        this.sdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>());
+        Thread.startVirtualThread(() -> this.sdk.ready(AgonesSDKProto.Empty.getDefaultInstance(), new IgnoredStreamObserver<>()));
     }
 }
