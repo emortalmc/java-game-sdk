@@ -7,8 +7,8 @@ import net.kyori.adventure.text.Component;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
-import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,11 +34,11 @@ final class TestGameHandler {
         this.gameManager = gameManager;
 
         EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
-        eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
+        eventNode.addListener(AsyncPlayerConfigurationEvent.class, this::onJoin);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }
 
-    private void onJoin(@NotNull PlayerLoginEvent event) {
+    private void onJoin(@NotNull AsyncPlayerConfigurationEvent event) {
         if (this.holder == null) {
             this.holder = new GameHolder(this.gameManager);
         }
@@ -67,7 +67,7 @@ final class TestGameHandler {
             this.game = gameManager.createGame(creationInfo);
         }
 
-        void onJoin(@NotNull PlayerLoginEvent event) {
+        void onJoin(@NotNull AsyncPlayerConfigurationEvent event) {
             Player player = event.getPlayer();
             player.sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
 

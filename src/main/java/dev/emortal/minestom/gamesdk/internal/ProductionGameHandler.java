@@ -4,8 +4,8 @@ import dev.emortal.minestom.gamesdk.game.Game;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
+import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
-import net.minestom.server.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +19,11 @@ final class ProductionGameHandler {
         this.gameManager = gameManager;
 
         EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
-        eventNode.addListener(PlayerLoginEvent.class, this::onJoin);
+        eventNode.addListener(AsyncPlayerConfigurationEvent.class, this::onJoin);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }
 
-    private void onJoin(@NotNull PlayerLoginEvent event) {
+    private void onJoin(@NotNull AsyncPlayerConfigurationEvent event) {
         Player player = event.getPlayer();
 
         Game game = null;

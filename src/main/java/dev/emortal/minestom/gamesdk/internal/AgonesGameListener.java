@@ -73,7 +73,7 @@ public final class AgonesGameListener {
         int i = 0;
 
         for (UUID playerId : playerIds) {
-            Player player = connectionManager.getPlayer(playerId);
+            Player player = connectionManager.getOnlinePlayerByUuid(playerId);
             if (player == null) continue;
 
             Game oldGame = this.gameManager.findGame(player);

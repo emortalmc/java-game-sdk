@@ -4,7 +4,6 @@ import dev.emortal.api.modules.LoadableModule;
 import dev.emortal.api.modules.Module;
 import dev.emortal.api.modules.ModuleProvider;
 import dev.emortal.minestom.core.Environment;
-import dev.emortal.minestom.core.LoggingInitializer;
 import dev.emortal.minestom.core.MinestomServer;
 import dev.emortal.minestom.core.module.kubernetes.KubernetesModule;
 import dev.emortal.minestom.core.module.messaging.MessagingModule;
@@ -27,7 +26,6 @@ final class MinestomGameServerImpl implements MinestomGameServer {
     static final boolean TEST_MODE = !Environment.isProduction() && Boolean.parseBoolean(System.getenv("GAME_SDK_TEST_MODE"));
 
     static {
-        LoggingInitializer.initialize();
         LOGGER = LoggerFactory.getLogger(MinestomGameServerImpl.class);
     }
 
