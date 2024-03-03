@@ -22,12 +22,8 @@ import org.slf4j.LoggerFactory;
 import java.util.function.Supplier;
 
 final class MinestomGameServerImpl implements MinestomGameServer {
-    private static final Logger LOGGER;
+    private static final Logger LOGGER = LoggerFactory.getLogger(MinestomGameServerImpl.class);
     static final boolean TEST_MODE = !Environment.isProduction() && Boolean.parseBoolean(System.getenv("GAME_SDK_TEST_MODE"));
-
-    static {
-        LOGGER = LoggerFactory.getLogger(MinestomGameServerImpl.class);
-    }
 
     private final GameProvider gameProvider;
 
