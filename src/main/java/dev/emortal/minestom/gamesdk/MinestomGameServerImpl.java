@@ -101,12 +101,13 @@ final class MinestomGameServerImpl implements MinestomGameServer {
                 gameManager.addGameStatusListener(new AgonesGameStatusListener(config, kubernetesModule.getSdk()));
             }
 
-            GameTracker gameTracker = new GameTracker(messaging, config);
-            gameManager.addGameStatusListener(gameTracker);
-
             if (messaging != null) {
+                GameTracker gameTracker = new GameTracker(messaging, config);
+                gameManager.addGameStatusListener(gameTracker);
+
                 new AgonesGameListener(gameManager, config, messaging);
             }
+
             MinecraftServer.getCommandManager().register(new GameSdkCommand(gameManager));
 
             return new MinestomGameServerImpl(gameManager);
