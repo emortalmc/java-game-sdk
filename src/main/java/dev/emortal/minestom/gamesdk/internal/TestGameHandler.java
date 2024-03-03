@@ -9,6 +9,7 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,16 @@ final class TestGameHandler {
         this.holder.onJoin(event);
     }
 
+    private void onFirstPlayerSpawn(@NotNull PlayerSpawnEvent event) {
+        if (!event.isFirstSpawn()) return;
+
+        if (this.holder == null) {
+            this.holder = new GameHolder(this.gameManager);
+        }
+
+        this.holder.onFirstSpawn(event);
+    }
+
     private void onLeave(@NotNull PlayerDisconnectEvent event) {
         if (this.holder == null) return;
 
@@ -69,12 +80,15 @@ final class TestGameHandler {
 
         void onJoin(@NotNull AsyncPlayerConfigurationEvent event) {
             Player player = event.getPlayer();
-            player.sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
 
             this.players.add(player.getUuid());
             GamePlayerTracker.addPlayer(this.game, player);
 
             event.setSpawningInstance(this.game.getSpawningInstance(player));
+        }
+
+        void onFirstSpawn(@NotNull PlayerSpawnEvent event) {
+            event.getPlayer().sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
         }
 
         void onLeave(@NotNull Player player) {
