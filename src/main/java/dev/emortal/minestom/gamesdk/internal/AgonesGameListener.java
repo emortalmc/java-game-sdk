@@ -76,10 +76,10 @@ public final class AgonesGameListener {
             Player player = connectionManager.getOnlinePlayerByUuid(playerId);
             if (player == null) continue;
 
+            // The old game will be null if the player is queued when the game is finishing. See REQUEUE logic
             Game oldGame = this.gameManager.findGame(player);
-            if (oldGame == null) continue;
+            if (oldGame != null) GamePlayerTracker.removePlayer(oldGame, player);
 
-            GamePlayerTracker.removePlayer(oldGame, player);
             GamePlayerTracker.addPlayer(newGame, player);
 
             // Increment after using the index

@@ -97,10 +97,12 @@ public final class GameManager implements GameProvider {
         }
 
         this.removeGame(game);
-        if (this.config.lobbyOnFinish()) {
-            KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> this.cleanUpGame(game), () -> this.cleanUpGame(game));
-        } else {
-            this.cleanUpGame(game);
+        switch (this.config.finishBehaviour()) {
+            case LOBBY ->
+                    KurushimiMinestomUtils.sendToLobby(game.getPlayers(), () -> this.cleanUpGame(game), () -> this.cleanUpGame(game));
+            case REQUEUE ->
+                    KurushimiMinestomUtils.sendToGamemode(game.getPlayers(), game.getCreationInfo().gameModeId(),
+                            () -> this.cleanUpGame(game), () -> this.cleanUpGame(game), 1);
         }
     }
 

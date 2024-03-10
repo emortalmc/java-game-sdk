@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * @param gameCreator a function that can be called to create a game instance
  */
 public record GameSdkConfig(int minPlayers, int maxGames, int minTrackingInterval, int maxTrackingInterval,
-                            boolean lobbyOnFinish, @NotNull GameCreator gameCreator) {
+                            FinishBehaviour finishBehaviour, @NotNull GameCreator gameCreator) {
 
     public static @NotNull Builder builder() {
         return new BuilderImpl();
@@ -33,7 +33,7 @@ public record GameSdkConfig(int minPlayers, int maxGames, int minTrackingInterva
 
             @NotNull GameCreatorStep maxTrackingInterval(int interval);
 
-            @NotNull GameCreatorStep lobbyOnFinish(boolean lobbyOnFinish);
+            @NotNull GameCreatorStep finishBehaviour(FinishBehaviour finishBehaviour);
 
             @NotNull EndStep gameCreator(@NotNull GameCreator creator);
         }
@@ -50,7 +50,7 @@ public record GameSdkConfig(int minPlayers, int maxGames, int minTrackingInterva
         private int maxGames;
         private int minTrackingInterval = GameTracker.DEFAULT_MIN_UPDATE_INTERVAL;
         private int maxTrackingInterval = GameTracker.DEFAULT_MAX_UPDATE_INTERVAL;
-        private boolean lobbyOnFinish = true;
+        private FinishBehaviour finishBehaviour = FinishBehaviour.LOBBY;
         private GameCreator gameCreator;
 
         @Override
@@ -78,8 +78,8 @@ public record GameSdkConfig(int minPlayers, int maxGames, int minTrackingInterva
         }
 
         @Override
-        public @NotNull GameCreatorStep lobbyOnFinish(boolean lobbyOnFinish) {
-            this.lobbyOnFinish = lobbyOnFinish;
+        public @NotNull GameCreatorStep finishBehaviour(FinishBehaviour finishBehaviour) {
+            this.finishBehaviour = finishBehaviour;
             return this;
         }
 
@@ -92,7 +92,11 @@ public record GameSdkConfig(int minPlayers, int maxGames, int minTrackingInterva
         @Override
         public @NotNull GameSdkConfig build() {
             return new GameSdkConfig(this.minPlayers, this.maxGames, this.minTrackingInterval, this.maxTrackingInterval,
-                    this.lobbyOnFinish, this.gameCreator);
+                    this.finishBehaviour, this.gameCreator);
         }
+    }
+
+    public enum FinishBehaviour {
+        LOBBY, REQUEUE
     }
 }
