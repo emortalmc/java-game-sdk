@@ -8,6 +8,10 @@ import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameFinishedEvent;
 import dev.emortal.minestom.gamesdk.game.GameProvider;
 import dev.emortal.minestom.gamesdk.internal.listener.GameStatusListener;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Metrics;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.entity.Player;
@@ -40,6 +44,10 @@ public final class GameManager implements GameProvider {
         }
 
         GameEventNodes.GAME_MANAGER.addListener(GameFinishedEvent.class, this::onGameFinish);
+
+        Gauge.builder("gamesdk.game_count", this.games, Set::size)
+                .description("The amount of games currently running")
+                .register(Metrics.globalRegistry);
     }
 
     private void initTestMode() {
@@ -73,6 +81,11 @@ public final class GameManager implements GameProvider {
         for (GameStatusListener listener : this.statusListeners) {
             listener.onGameStart(game);
         }
+
+        game.getMeters().add(Gauge.builder("gamesdk.game_start_time", System.currentTimeMillis(), Long::doubleValue)
+                .tag("gameId", game.getCreationInfo().id())
+                .description("The time the game started")
+                .register(Metrics.globalRegistry));
     }
 
     private void removeGame(@NotNull Game game) {
@@ -109,6 +122,7 @@ public final class GameManager implements GameProvider {
     private void cleanUpGame(@NotNull Game game) {
         this.kickAllRemainingPlayers(game);
         game.cleanUp();
+        game.getMeters().forEach(Meter::close);
 
         // We call this here to ensure all the game's players are disconnected and the game is unregistered, so the check for the
         // player count will actually see the new player count after the players are disconnected.

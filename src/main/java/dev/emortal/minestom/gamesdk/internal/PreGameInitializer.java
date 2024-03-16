@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 final class PreGameInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(PreGameInitializer.class);
 
+    private final @NotNull GameManager gameManager;
+
     private final @NotNull GameSdkConfig config;
     private final @NotNull Game game;
 
@@ -32,6 +34,7 @@ final class PreGameInitializer {
     private final AtomicInteger playerCount = new AtomicInteger();
 
     PreGameInitializer(@NotNull GameManager gameManager, @NotNull GameSdkConfig config, @NotNull Game game) {
+        this.gameManager = gameManager;
         this.config = config;
         this.game = game;
 
@@ -61,7 +64,7 @@ final class PreGameInitializer {
         int actualPlayerCount = this.game.getPlayers().size();
         if (actualPlayerCount >= this.config.minPlayers()) {
             this.cleanUpPreGame();
-            this.game.start();
+            this.gameManager.startGame(this.game);
         } else {
             // TODO: This isn't a normal finish. We should inform players that the game couldn't start and send them back to the lobby.
             this.game.finish();
