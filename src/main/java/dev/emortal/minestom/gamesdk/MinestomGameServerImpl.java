@@ -90,11 +90,11 @@ final class MinestomGameServerImpl implements MinestomGameServer {
 
             MessagingModule messaging = moduleProvider.getModule(MessagingModule.class);
             KubernetesModule kubernetesModule = moduleProvider.getModule(KubernetesModule.class);
-            boolean hasAgones = kubernetesModule != null && kubernetesModule.getSdk() != null;
+            boolean hasAgones = kubernetesModule != null && kubernetesModule.getAgonesSdk() != null;
 
             GameManager gameManager = new GameManager(config);
             if (!TEST_MODE && hasAgones) {
-                gameManager.addGameStatusListener(new AgonesGameStatusListener(config, kubernetesModule.getSdk()));
+                gameManager.addGameStatusListener(new AgonesGameStatusListener(gameManager, kubernetesModule));
             }
 
             if (messaging != null) {

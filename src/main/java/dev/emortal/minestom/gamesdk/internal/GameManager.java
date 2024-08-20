@@ -151,6 +151,11 @@ public final class GameManager implements GameProvider {
         return null;
     }
 
+    @Override
+    public int getGameCount() {
+        return this.games.size();
+    }
+
     public @NotNull Set<Game> getGames() {
         return this.games;
     }

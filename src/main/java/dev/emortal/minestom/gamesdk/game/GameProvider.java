@@ -7,4 +7,6 @@ import org.jetbrains.annotations.Nullable;
 public interface GameProvider {
 
     @Nullable Game findGame(@NotNull Player player);
+
+    int getGameCount();
 }
