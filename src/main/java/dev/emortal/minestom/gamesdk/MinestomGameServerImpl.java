@@ -2,6 +2,7 @@ package dev.emortal.minestom.gamesdk;
 
 import dev.emortal.api.modules.LoadableModule;
 import dev.emortal.api.modules.Module;
+import dev.emortal.api.modules.ModuleManager;
 import dev.emortal.api.modules.ModuleProvider;
 import dev.emortal.minestom.core.Environment;
 import dev.emortal.minestom.core.MinestomServer;
@@ -25,15 +26,22 @@ final class MinestomGameServerImpl implements MinestomGameServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinestomGameServerImpl.class);
     static final boolean TEST_MODE = !Environment.isProduction() && Boolean.parseBoolean(System.getenv("GAME_SDK_TEST_MODE"));
 
-    private final GameProvider gameProvider;
+    private final @NotNull GameProvider gameProvider;
+    private final @NotNull MinestomServer server;
 
-    private MinestomGameServerImpl(@NotNull GameProvider gameProvider) {
+    private MinestomGameServerImpl(@NotNull GameProvider gameProvider, @NotNull MinestomServer server) {
         this.gameProvider = gameProvider;
+        this.server = server;
     }
 
     @Override
     public @NotNull GameProvider getGameProvider() {
         return this.gameProvider;
+    }
+
+    @Override
+    public @NotNull ModuleManager getModuleManager() {
+        return this.server.getModuleManager();
     }
 
     static final class BuilderImpl implements Builder, Builder.EndStep {
@@ -80,12 +88,12 @@ final class MinestomGameServerImpl implements MinestomGameServer {
         @Override
         public @NotNull MinestomGameServerImpl build() {
             MinestomServer server = this.serverBuilder.build();
-            MinestomGameServerImpl gameServer = initialize(server.getModuleManager(), this.configSupplier.get());
+            MinestomGameServerImpl gameServer = initialize(server.getModuleManager(), this.configSupplier.get(), server);
             server.start();
             return gameServer;
         }
 
-        private static @NotNull MinestomGameServerImpl initialize(@NotNull ModuleProvider moduleProvider, @NotNull GameSdkConfig config) {
+        private static @NotNull MinestomGameServerImpl initialize(@NotNull ModuleProvider moduleProvider, @NotNull GameSdkConfig config, @NotNull MinestomServer server) {
             LOGGER.info("Initializing Game SDK (test mode: {}, config: {})", TEST_MODE, config);
 
             MessagingModule messaging = moduleProvider.getModule(MessagingModule.class);
@@ -106,7 +114,7 @@ final class MinestomGameServerImpl implements MinestomGameServer {
 
             MinecraftServer.getCommandManager().register(new GameSdkCommand(gameManager));
 
-            return new MinestomGameServerImpl(gameManager);
+            return new MinestomGameServerImpl(gameManager, server);
         }
     }
 }

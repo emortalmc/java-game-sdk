@@ -2,6 +2,7 @@ package dev.emortal.minestom.gamesdk;
 
 import dev.emortal.api.modules.LoadableModule;
 import dev.emortal.api.modules.Module;
+import dev.emortal.api.modules.ModuleManager;
 import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameProvider;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +21,8 @@ public interface MinestomGameServer {
     }
 
     @NotNull GameProvider getGameProvider();
+
+    @NotNull ModuleManager getModuleManager();
 
     interface Builder {
 
