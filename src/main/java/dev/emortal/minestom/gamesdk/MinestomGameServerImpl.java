@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 final class MinestomGameServerImpl implements MinestomGameServer {
@@ -47,7 +48,7 @@ final class MinestomGameServerImpl implements MinestomGameServer {
     static final class BuilderImpl implements Builder, Builder.EndStep {
 
         private final MinestomServer.Builder serverBuilder = MinestomServer.builder();
-        private Supplier<GameSdkConfig> configSupplier;
+        private Function<ModuleManager, GameSdkConfig> configSupplier;
 
         @Override
         public @NotNull Builder address(@NotNull String address) {
@@ -80,7 +81,7 @@ final class MinestomGameServerImpl implements MinestomGameServer {
         }
 
         @Override
-        public @NotNull EndStep configSupplier(@NotNull Supplier<GameSdkConfig> configSupplier) {
+        public @NotNull EndStep configSupplier(@NotNull Function<ModuleManager, GameSdkConfig> configSupplier) {
             this.configSupplier = configSupplier;
             return this;
         }
@@ -88,7 +89,8 @@ final class MinestomGameServerImpl implements MinestomGameServer {
         @Override
         public @NotNull MinestomGameServerImpl build() {
             MinestomServer server = this.serverBuilder.build();
-            MinestomGameServerImpl gameServer = initialize(server.getModuleManager(), this.configSupplier.get(), server);
+            GameSdkConfig config = this.configSupplier.apply(server.getModuleManager());
+            MinestomGameServerImpl gameServer = initialize(server.getModuleManager(), config, server);
             server.start();
             return gameServer;
         }

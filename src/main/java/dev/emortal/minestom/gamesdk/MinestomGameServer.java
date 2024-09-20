@@ -7,6 +7,7 @@ import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.GameProvider;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface MinestomGameServer {
@@ -16,7 +17,7 @@ public interface MinestomGameServer {
         return new MinestomGameServerImpl.BuilderImpl();
     }
 
-    static @NotNull MinestomGameServer create(@NotNull Supplier<GameSdkConfig> configSupplier) {
+    static @NotNull MinestomGameServer create(@NotNull Function<ModuleManager, GameSdkConfig> configSupplier) {
         return builder().commonModules().configSupplier(configSupplier).build();
     }
 
@@ -36,7 +37,7 @@ public interface MinestomGameServer {
 
         @NotNull Builder commonModules();
 
-        @NotNull Builder.EndStep configSupplier(@NotNull Supplier<GameSdkConfig> configSupplier);
+        @NotNull Builder.EndStep configSupplier(@NotNull Function<ModuleManager, GameSdkConfig> configSupplier);
 
         interface EndStep {
 
