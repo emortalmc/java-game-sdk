@@ -16,6 +16,7 @@ import dev.emortal.minestom.gamesdk.config.GameSdkConfig;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.game.GameUpdateRequestEvent;
 import dev.emortal.minestom.gamesdk.internal.listener.GameStatusListener;
+import dev.emortal.minestom.gamesdk.util.BasicGamePlayerConverter;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
@@ -159,15 +160,8 @@ public final class GameTracker implements GameStatusListener {
     }
 
     private @NotNull List<BasicGamePlayer> createGamePlayers(@NotNull Game game) {
-        List<BasicGamePlayer> gamePlayers = new ArrayList<>();
-
-        for (Player player : game.getPlayers()) {
-            gamePlayers.add(BasicGamePlayer.newBuilder()
-                    .setId(player.getUuid().toString())
-                    .setUsername(player.getUsername())
-                    .build());
-        }
-
-        return gamePlayers;
+        return game.getPlayers().stream()
+                .map(BasicGamePlayerConverter::fromMinestomPlayer)
+                .toList();
     }
 }
