@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public final class AgonesGameStatusListener implements GameStatusListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgonesGameStatusListener.class);
+    private static final boolean DISABLE_AGONES_GAME_COUNTER = Boolean.parseBoolean(System.getenv("DISABLE_AGONES_GAME_COUNTER"));
 
     private final @NotNull GameProvider gameProvider;
     private final @NotNull KubernetesModule kubeModule;
@@ -32,6 +33,8 @@ public final class AgonesGameStatusListener implements GameStatusListener {
 
     @Override
     public void onGameRemoved(@NotNull Game game) {
+        if (DISABLE_AGONES_GAME_COUNTER) return;
+
         Thread.startVirtualThread(() -> {
             this.kubeModule.updateAgonesCounter("games", -1);
             this.kubeModule.removeFromAgonesList("games", game.getCreationInfo().id());
