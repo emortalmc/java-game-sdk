@@ -77,6 +77,7 @@ public final class GameManager implements GameProvider {
     }
 
     public void startGame(@NotNull Game game) {
+        LOGGER.info("Starting game {}", game.getCreationInfo().id());
         game.start();
         for (GameStatusListener listener : this.statusListeners) {
             listener.onGameStart(game);
@@ -101,10 +102,11 @@ public final class GameManager implements GameProvider {
         Game game = event.game();
         if (!this.games.contains(game)) {
             // Definitely don't want a double remove and clean up
-            LOGGER.info("Game already finished and removed when asked to be finished. Ignoring finish request.");
+            LOGGER.info("Game {} already finished and removed. Ignoring finish request.", game.getCreationInfo().id());
             return;
         }
 
+        LOGGER.info("Game {} finished", game.getCreationInfo().id());
         for (GameStatusListener listener : this.statusListeners) {
             listener.onGameFinish(game);
         }
@@ -120,6 +122,7 @@ public final class GameManager implements GameProvider {
     }
 
     private void cleanUpGame(@NotNull Game game) {
+        LOGGER.info("Cleaning up game {}", game.getCreationInfo().id());
         this.kickAllRemainingPlayers(game);
         game.cleanUp();
         game.getMeters().forEach(Meter::close);

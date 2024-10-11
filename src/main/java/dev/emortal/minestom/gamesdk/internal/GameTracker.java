@@ -79,8 +79,9 @@ public final class GameTracker implements GameStatusListener {
                 .setStartTime(ProtoTimestampConverter.now())
                 .addAllContent(this.packMessages(game.createGameStartExtraData()));
 
-        if (game.getCreationInfo().mapId() != null) {
-            messageBuilder.setMapId(game.getCreationInfo().mapId());
+        String mapId = game.getCreationInfo().mapId();
+        if (mapId != null) {
+            messageBuilder.setMapId(mapId);
         }
 
         this.gameMaxTimeUpdateTasks.put(game, SCHEDULER.schedule(() -> {
