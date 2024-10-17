@@ -60,11 +60,12 @@ public final class GameTracker implements GameStatusListener {
 
     private void maxTimeUpdate(@NotNull Game game) {
         long nextExpectedUpdate = game.getLastGameTrackerUpdate() + (this.config.maxTrackingInterval() * 1000L);
-        if (nextExpectedUpdate < System.currentTimeMillis()) {
+        long timeUntilNextUpdate = nextExpectedUpdate - System.currentTimeMillis();
+        if (timeUntilNextUpdate > 0) {
             // Game has been updated in the meantime, let's reschedule this task
             this.gameMaxTimeUpdateTasks.put(game, SCHEDULER.schedule(() -> {
                 this.maxTimeUpdate(game);
-            }, nextExpectedUpdate - System.currentTimeMillis(), TimeUnit.MILLISECONDS));
+            }, timeUntilNextUpdate + 10, TimeUnit.MILLISECONDS));
             return;
         }
 
@@ -119,10 +120,10 @@ public final class GameTracker implements GameStatusListener {
             // Game was updated too recently, queue an update if it isn't already queued
 
             // Schedule an update for the next interval
-            SCHEDULER.schedule(() -> {
-                game.markTrackerUpdated();
-                this.updateGame(game);
-            }, minNextUpdate - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            SCHEDULER.schedule(
+                    () -> this.updateGame(game),
+                    minNextUpdate - System.currentTimeMillis(),
+                    TimeUnit.MILLISECONDS);
             return;
         }
 
