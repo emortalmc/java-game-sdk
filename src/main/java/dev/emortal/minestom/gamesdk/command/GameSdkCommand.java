@@ -1,5 +1,6 @@
 package dev.emortal.minestom.gamesdk.command;
 
+import dev.emortal.minestom.core.module.core.playerprovider.EmortalPlayer;
 import dev.emortal.minestom.gamesdk.config.GameCreationInfo;
 import dev.emortal.minestom.gamesdk.game.Game;
 import dev.emortal.minestom.gamesdk.internal.GameManager;
@@ -34,7 +35,7 @@ public final class GameSdkCommand extends Command {
     }
 
     private @NotNull CommandCondition hasPermission(@NotNull String permission) {
-        return (sender, command) -> sender.hasPermission(permission);
+        return (sender, command) -> sender instanceof EmortalPlayer e && e.hasPermission(permission);
     }
 
     private void executeStart(@NotNull CommandSender sender, @NotNull CommandContext context) {
