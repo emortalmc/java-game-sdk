@@ -36,6 +36,7 @@ final class TestGameHandler {
 
         EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
         eventNode.addListener(AsyncPlayerConfigurationEvent.class, this::onJoin);
+        eventNode.addListener(PlayerSpawnEvent.class, this::onPlayerSpawn);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }
 
@@ -47,14 +48,12 @@ final class TestGameHandler {
         this.holder.onJoin(event);
     }
 
-    private void onFirstPlayerSpawn(@NotNull PlayerSpawnEvent event) {
-        if (!event.isFirstSpawn()) return;
-
+    private void onPlayerSpawn(@NotNull PlayerSpawnEvent event) {
         if (this.holder == null) {
             this.holder = new GameHolder(this.gameManager);
         }
 
-        this.holder.onFirstSpawn(event);
+        this.holder.onSpawn(event);
     }
 
     private void onLeave(@NotNull PlayerDisconnectEvent event) {
@@ -81,14 +80,16 @@ final class TestGameHandler {
         void onJoin(@NotNull AsyncPlayerConfigurationEvent event) {
             Player player = event.getPlayer();
 
+            this.players.add(player.getUuid());
+            GamePlayerTracker.addPlayer(this.game, player);
+
             event.setSpawningInstance(this.game.getSpawningInstance(player));
         }
 
-        void onFirstSpawn(@NotNull PlayerSpawnEvent event) {
+        void onSpawn(@NotNull PlayerSpawnEvent event) {
             Player player = event.getPlayer();
 
-            this.players.add(player.getUuid());
-            GamePlayerTracker.addPlayer(this.game, player);
+            this.game.onJoin(player);
 
             event.getPlayer().sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
         }

@@ -8,7 +8,7 @@ final class GamePlayerTracker {
 
     static void addPlayer(@NotNull Game game, @NotNull Player player) {
         game.getPlayers().add(player);
-        game.onJoin(player);
+        game.onPreJoin(player);
     }
 
     static void removePlayer(@NotNull Game game, @NotNull Player player) {

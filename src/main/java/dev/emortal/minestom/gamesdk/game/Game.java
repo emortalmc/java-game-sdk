@@ -15,10 +15,8 @@ import net.minestom.server.event.EventNode;
 import net.minestom.server.instance.Instance;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,7 +55,15 @@ public abstract class Game implements PacketGroupingAudience, TrackableGame {
     public abstract void cleanUp();
 
     /**
-     * Called when a player logs in.
+     * Called when a player is joining.
+     *
+     * <p>
+     * Can be used to set spawn points, called <b>after</b> the player has been added to the players list..
+     */
+    public abstract void onPreJoin(@NotNull Player player);
+
+    /**
+     * Called when a player is fully spawned in.
      *
      * <p>
      * This is called <b>after</b> the player has been added to the players list.

@@ -41,6 +41,8 @@ final class ProductionGameHandler {
             return;
         }
 
+        GamePlayerTracker.addPlayer(game, player);
+
         event.setSpawningInstance(game.getSpawningInstance(player));
     }
 
@@ -59,7 +61,8 @@ final class ProductionGameHandler {
             LOGGER.error("No game could be found for player {}", player.getUsername());
             return;
         }
-        GamePlayerTracker.addPlayer(game, player);
+
+        game.onJoin(player);
     }
 
 
