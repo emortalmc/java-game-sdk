@@ -81,13 +81,15 @@ final class TestGameHandler {
         void onJoin(@NotNull AsyncPlayerConfigurationEvent event) {
             Player player = event.getPlayer();
 
-            this.players.add(player.getUuid());
-            GamePlayerTracker.addPlayer(this.game, player);
-
             event.setSpawningInstance(this.game.getSpawningInstance(player));
         }
 
         void onFirstSpawn(@NotNull PlayerSpawnEvent event) {
+            Player player = event.getPlayer();
+
+            this.players.add(player.getUuid());
+            GamePlayerTracker.addPlayer(this.game, player);
+
             event.getPlayer().sendMessage(Component.text("The server is in test mode. Use /gamesdk start to start a game."));
         }
 

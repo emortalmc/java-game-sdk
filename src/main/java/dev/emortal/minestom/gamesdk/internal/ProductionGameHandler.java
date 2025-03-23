@@ -6,6 +6,7 @@ import net.minestom.server.event.Event;
 import net.minestom.server.event.EventNode;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerDisconnectEvent;
+import net.minestom.server.event.player.PlayerSpawnEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ final class ProductionGameHandler {
 
         EventNode<Event> eventNode = GameEventNodes.GAME_MANAGER;
         eventNode.addListener(AsyncPlayerConfigurationEvent.class, this::onJoin);
+        eventNode.addListener(PlayerSpawnEvent.class, this::onSpawn);
         eventNode.addListener(PlayerDisconnectEvent.class, this::onLeave);
     }
 
@@ -39,9 +41,27 @@ final class ProductionGameHandler {
             return;
         }
 
-        GamePlayerTracker.addPlayer(game, player);
         event.setSpawningInstance(game.getSpawningInstance(player));
     }
+
+    void onSpawn(@NotNull PlayerSpawnEvent event) {
+        Player player = event.getPlayer();
+
+        Game game = null;
+        for (Game currentGame : this.gameManager.getGames()) {
+            if (!currentGame.getCreationInfo().playerIds().contains(player.getUuid())) continue; // the game is not for this player
+
+            game = currentGame;
+            break;
+        }
+
+        if (game == null) {
+            LOGGER.error("No game could be found for player {}", player.getUsername());
+            return;
+        }
+        GamePlayerTracker.addPlayer(game, player);
+    }
+
 
     private void onLeave(@NotNull PlayerDisconnectEvent event) {
         Player player = event.getPlayer();
