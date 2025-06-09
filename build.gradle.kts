@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    api("dev.emortal.minestom:core:955b54e") {
+    api("dev.emortal.minestom:core:0a88e10") {
         exclude(group = "dev.emortal.api", module = "common-proto-sdk")
     }
     api("dev.emortal.api:common-proto-sdk:b05808d")
